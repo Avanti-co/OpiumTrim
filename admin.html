@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+  <title>Admin - Add Items</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <style>
+    body { font-family: Arial; padding: 30px; background: #f0f0f0; }
+    h2 { color: #333; }
+    input, textarea { display: block; margin-bottom: 10px; padding: 8px; width: 300px; }
+    button { padding: 10px 20px; margin-bottom: 20px; cursor: pointer; }
+    .success { color: green; margin-top: 10px; }
+    #adminPanel { display: none; }
+
+    table { background: white; width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #eee; }
+    img { width: 60px; height: 60px; object-fit: cover; }
+
+    /* Modal styles */
+    .modal {
+      display: none; position: fixed; z-index: 10;
+      left: 0; top: 0; width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.6);
+      justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: white; padding: 20px; border-radius: 5px;
+      width: 400px; max-height: 90vh; overflow-y: auto;
+    }
+
+    .upload-box {
+      width: 300px; height: 150px;
+      border: 2px dashed #aaa;
+      display: flex; align-items: center; justify-content: center;
+      color: #777; margin-bottom: 10px;
+      cursor: pointer;
+      background-color: white;
+    }
+
+    .upload-box:hover {
+      border-color: #555;
+    }
+
+    #previewImage {
+      width: 100px; height: 100px; object-fit: cover;
+      margin-top: 10px;
+    }
+ .menu-btn {
+      position: fixed;
+      top: 10px;
+      left: 20px;
+      background: #111;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1001;
+      transition: background 0.3s;
+    }
+
+    .menu-btn:hover {
+      background: #333;
+    }
+
+    /* Sidebar Menu */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 260px;
+      height: 100%;
+      background: #1c1c1e;
+      color: #fff;
+      padding: 60px 20px;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 12px 0;
+      color: #ccc;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .sidebar a:hover {
+      color: #fff;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+  </style>
+</head>
+<body>
+
+<h3 style="position: fixed; text-align: center; z-index: 1002; left: 30%; top: 0; color: white;">OpiumTrim.admins</h3>
+
+<div style="width: 100%; height: 60px; background-color: black; isolation: isolate; position: fixed; z-index: 1000; top: 0; left: 0;"></div>
+
+  <button class="menu-btn" id="menuBtn" onclick="toggleMenu()"></button>
+
+  <div class="sidebar" id="sidebar">
+    <h2>Menu</h2>
+    <a href="admin.html#adminPanel"><i class="fa fa-home"></i>  Home</a>
+    <a href="logoUpload.html"><i class="fa fa-instagram"></i>  Logos</a>
+    <a href="media.html"><i class="fa fa-upload"></i>  Ads & media</a>
+    <a href="review-reply.html"><i class="fa fa-comments"></i>  User feedback</a>
+    <a href="viewInvoices.html"><i class="fa fa-file-invoice"></i>  Invoices</a>
+<a href="index.html"><i class="fa fa-store"></i>  View store</a>
+
+  </div>
+
+  <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+  <h2 style="margin-top: 100px;">Admin Login</h2>
+
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="signIn()">Sign In</button>
+  <div class="success" id="loginMessage"></div>
+
+  <div id="adminPanel">
+    <h2>Admin Panel - Add Product</h2>
+    <input type="text" id="name" placeholder="Product Name">
+    <textarea id="description" placeholder="Description"></textarea>
+    <input type="number" id="price" placeholder="Price">
+    <input type="number" id="quantity" placeholder="Max Quantity Available">
+    <input type="text" id="sizes" placeholder="Available Sizes (comma-separated)">
+<select id="category">
+  <option value="">Select Category</option>
+  <option value="shirts">Shirts</option>
+  <option value="hoodies">Hoodies</option>
+  <option value="bottoms">Bottoms</option>
+  <option value="headwear">Headwear</option>
+  <option value="footwear">Footwear</option>
+  <option value="accessories">Accessories</option>
+  <option value="others">Others</option>
+</select>
+
+   <div class="upload-box" onclick="document.getElementById('uploadInput').click()">
+  Click to Upload Image
+</div>
+<input type="file" id="uploadInput" style="display: none;" onchange="uploadImage(event)">
+<div id="uploadStatus"></div>
+<img id="previewImage" src="" style="display: none; width: 100px; height: 100px; object-fit: cover;">
+<input type="hidden" id="imageUrl">
+
+    <img id="previewImage" src="" style="display: none;">
+    <button onclick="addProduct()">Add Product</button>
+    <div class="success" id="message"></div>
+
+    <div id="productList"></div>
+  </div>
+
+  <!-- Upload Modal -->
+  <!-- Inside your form -->
+
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3>Edit Product</h3>
+      <input type="text" id="editName" placeholder="Product Name">
+      <textarea id="editDescription" placeholder="Description"></textarea>
+      <input type="number" id="editPrice" placeholder="Price">
+      <input type="number" id="editQuantity" placeholder="Max Quantity Available">
+      <input type="text" id="editSizes" placeholder="Sizes (comma-separated)">
+<select id="editCategory">
+  <option value="">Select Category</option>
+  <option value="shirts">Shirts</option>
+  <option value="hoodies">Hoodies</option>
+  <option value="bottoms">Bottoms</option>
+  <option value="headwear">Headwear</option>
+  <option value="footwear">Footwear</option>
+  <option value="accessories">Accessories</option>
+  <option value="others">Others</option>
+</select>
+
+      <input type="text" id="editImageUrl" placeholder="Image URL">
+      <button onclick="saveEdit()">Save</button>
+      <button onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+
+<script>
+document.getElementById("menuBtn").disabled = true;
+
+document.getElementById("menuBtn").style.opacity = "0.5";
+
+document.getElementById("menuBtn").textContent = "";
+
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD_LpxzRuzJnz6XQX2hlMGU3yxY1s6u9ZA",
+    authDomain: "items-7984c.firebaseapp.com",
+    databaseURL: "https://items-7984c-default-rtdb.firebaseio.com",
+    projectId: "items-7984c",
+    storageBucket: "items-7984c.appspot.com",
+    messagingSenderId: "951906140915",
+    appId: "1:951906140915:web:b360bfac21a1149ca12d86"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const auth = firebase.auth();
+
+  let currentEditId = null;
+
+  function signIn() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => {
+
+document.getElementById("menuBtn").disabled = false;
+
+document.getElementById("menuBtn").style.opacity = "1";
+        
+document.getElementById("menuBtn").innerHTML = '<i class="fa fa-bars"></i>';
+
+document.getElementById('loginMessage').innerText = "Signed in successfully!";
+
+
+        document.getElementById('adminPanel').style.display = "block";
+        loadProducts();
+      })
+      .catch(error => {
+        document.getElementById('loginMessage').innerText = error.message;
+      });
+  }
+
+  function addProduct() {
+  const name = document.getElementById('name').value;
+  const description = document.getElementById('description').value;
+  const price = document.getElementById('price').value;
+  const quantity = document.getElementById('quantity').value;
+  const sizes = document.getElementById('sizes').value.split(',').map(s => s.trim());
+  const imageUrl = document.getElementById('imageUrl').value;
+  const category = document.getElementById('category').value;
+
+  if (!category) {
+    alert("Please select a category.");
+    return;
+  }
+
+  const ref = db.ref('products').push();
+  ref.set({ name, description, price, quantity, sizes, imageUrl, category, fileId: lastUploadedFileId }).then(() => {
+    document.getElementById('message').innerText = "Product added!";
+    ['name', 'description', 'price', 'quantity', 'sizes', 'imageUrl', 'category'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('previewImage').style.display = 'none';
+    loadProducts();
+  });
+}
+
+
+  function loadProducts() {
+    const productList = document.getElementById('productList');
+    productList.innerHTML = `
+      <h2>All Products</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="productTableBody"></tbody>
+      </table>
+    `;
+    const tbody = document.getElementById('productTableBody');
+    tbody.innerHTML = '';
+    db.ref('products').once('value', snapshot => {
+      const products = snapshot.val();
+      for (let id in products) {
+        const p = products[id];
+        const fileId = p.fileId || ''; // You must save fileId when uploading
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><img src="${p.imageUrl}" alt="" height="50"></td>
+          <td>${p.name}</td>
+          <td>${p.category || '—'}</td>
+
+          <td>${p.price}</td>
+          <td>
+            <button onclick='openEditModal("${id}")'>Edit</button>
+            <button onclick='deleteProduct("${id}", "${fileId}")'>Delete</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      }
+    });
+  }
+
+  function openEditModal(id) {
+    currentEditId = id;
+    db.ref('products/' + id).once('value').then(snapshot => {
+      const p = snapshot.val();
+      document.getElementById('editName').value = p.name;
+      document.getElementById('editDescription').value = p.description;
+      document.getElementById('editPrice').value = p.price;
+      document.getElementById('editQuantity').value = p.quantity;
+      document.getElementById('editSizes').value = p.sizes.join(', ');
+
+document.getElementById('editCategory').value = p.category || "";
+
+      document.getElementById('editImageUrl').value = p.imageUrl;
+      document.getElementById('editModal').style.display = 'flex';
+    });
+  }
+
+  function saveEdit() {
+    const updated = {
+  name: document.getElementById('editName').value,
+  description: document.getElementById('editDescription').value,
+  price: document.getElementById('editPrice').value,
+  quantity: document.getElementById('editQuantity').value,
+  sizes: document.getElementById('editSizes').value.split(',').map(s => s.trim()),
+  imageUrl: document.getElementById('editImageUrl').value,
+  category: document.getElementById('editCategory').value
+};
+
+    db.ref('products/' + currentEditId).update(updated).then(() => {
+      closeModal();
+      loadProducts();
+    });
+  }
+
+  function deleteProduct(id, fileId = '') {
+    if (confirm("Delete this product?")) {
+      db.ref('products/' + id).remove().then(() => {
+        if (fileId) {
+          deleteMediaItem(fileId);
+        } else {
+          loadProducts();
+        }
+      });
+    }
+  }
+
+  async function deleteMediaItem(fileId) {
+    const privateKey = 'private_LWNMj6jq0yExzVkJTM9X0NV3Sk8=';
+    const auth = btoa(privateKey + ":");
+
+    try {
+      await fetch(`https://api.imagekit.io/v1/files/${fileId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Basic ${auth}`
+        }
+      });
+      loadProducts();
+    } catch (err) {
+      console.error("ImageKit deletion failed:", err);
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('editModal').style.display = 'none';
+    currentEditId = null;
+  }
+
+  // Upload image to ImageKit
+  let lastUploadedFileId = "";
+
+  async function uploadImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    document.getElementById('uploadStatus').innerText = 'Uploading...';
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result.split(',')[1];
+      const privateKey = 'private_LWNMj6jq0yExzVkJTM9X0NV3Sk8=';
+      const uploadUrl = 'https://upload.imagekit.io/api/v1/files/upload';
+
+      const formData = new FormData();
+      formData.append('file', `data:${file.type};base64,${base64}`);
+      formData.append('fileName', file.name);
+
+      const headers = new Headers();
+      headers.append('Authorization', 'Basic ' + btoa(privateKey + ':'));
+
+      try {
+        const response = await fetch(uploadUrl, {
+          method: 'POST',
+          headers,
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.url) {
+          document.getElementById('imageUrl').value = result.url;
+          document.getElementById('previewImage').src = result.url;
+          document.getElementById('previewImage').style.display = 'block';
+          document.getElementById('uploadStatus').innerText = 'Upload successful!';
+          lastUploadedFileId = result.fileId;
+        } else {
+          document.getElementById('uploadStatus').innerText = 'Upload failed.';
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('uploadStatus').innerText = 'Error uploading image.';
+      }
+    };
+
+    reader.readAsDataURL(file);
+  }
+</script>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+
+    function toggleMenu() {
+      const isActive = sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+
+      // Change button text
+      menuBtn.innerHTML = isActive ? 'back' : '<i class="fa fa-bars"></i>';
+    }
+  </script>
+</body>
+</html>

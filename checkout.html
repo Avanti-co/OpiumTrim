@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Checkout</title>
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f4f9;
+      padding: 40px;
+    }
+
+    .invoice-container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    .section-header {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #444;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+
+    table th {
+      background-color: #f0f0f0;
+      font-weight: 600;
+    }
+
+    .total-line {
+      text-align: right;
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #222;
+    }
+
+    .status {
+      font-size: 16px;
+      font-weight: 500;
+      padding: 10px;
+      background-color: #ffeeba;
+      border-left: 4px solid #ffc107;
+      margin-top: 20px;
+      color: #856404;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+      display: block;
+      width: 100%;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
+    input[type="tel"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 15px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    ul { list-style: none; padding: 0; }
+    ul li { margin: 5px 0; padding: 8px; background: #eee; cursor: pointer; }
+    ul li:hover { background: #ddd; }
+
+    /* Modal */
+    #invoiceModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 999;
+    }
+    #invoiceModalContent {
+      background: #fff;
+      margin: 60px auto;
+      padding: 20px;
+      max-width: 800px;
+      border-radius: 8px;
+      position: relative;
+    }
+    #invoiceModalContent span.close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+  .menu-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: #111;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1001;
+      transition: background 0.3s;
+      font-size: 100%;
+    }
+
+    .menu-btn:hover {
+      background: #333;
+    }
+
+    /* Sidebar Menu */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 260px;
+      height: 100%;
+      background: #1c1c1e;
+      color: #fff;
+      padding: 60px 20px;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 12px 0;
+      color: #ccc;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .sidebar a:hover {
+      color: #fff;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+  </style>
+</head>
+<body>
+
+  <button class="menu-btn" id="menuBtn" onclick="toggleMenu()"><i class="fa fa-bars"></i></button>
+
+  <div class="sidebar" id="sidebar">
+
+<button id="logoutBtn" onclick="logout()"><i class="fa fa-sign-out-alt"></i>Logout</button>
+    <h2>Menu</h2>
+
+    <a href="index.html"><i class="fa fa-home"></i>  Home</a>
+    <a href="profile.html"><i class=" fa fa-user"></i>  Profile</a>
+<a href="index.html#productContainer"><i class="fa fa-store"></i>  Store</a>
+    <a href="cart.html"><i class="fa fa-shopping-cart"></i>  Cart</a>
+<a href="checkout.html"><i class="fa fa-credit-card"></i>  Checkout</a>
+    <a href="index.html#AI"><i class="fa fa-question-circle"></i>  Help</a>
+    <a href="index.html#feed"><i class="fa fa-comments"></i>  Feedback</a>
+<a href="index.html#gallery-container"><i class="fa fa-images"></i>  Gallery</a>
+<a href="admin.html"><i class="fa fa-user-lock"></i>  Admins</a>
+
+
+  </div>
+
+  <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+
+<div class="invoice-container" id="invoiceBox" style="display:none;">
+  <h2>Invoice</h2>
+
+  <div class="invoice-header">
+    <div class="section-header">Customer Info</div>
+    <p><strong>Email:</strong> <span id="userEmail"></span></p>
+    <p><strong>Date:</strong> <span id="invoiceDate"></span></p>
+  </div>
+
+  <div class="section-header">Purchased Items</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Size</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody id="itemTableBody"></tbody>
+  </table>
+
+  <div class="invoice-summary">
+    <div class="total-line">Total: K<span id="totalAmount"></span></div>
+  </div>
+
+  <div class="status">Status: <span id="statusText">awaiting payment</span></div>
+
+  <div class="section-header">Contact Info</div>
+  <input type="tel" id="phoneNumber" placeholder="Enter your phone number" required />
+  <button class="btn" onclick="submitCheckout()">Submit Invoice</button>
+</div>
+
+<div class="invoice-container" style="margin-top: 40px;">
+  <h2>Your Past Invoices</h2>
+  <ul id="invoiceList"></ul>
+</div>
+
+<div id="invoiceModal">
+  <div id="invoiceModalContent">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h2>Invoice Details</h2>
+    <p><strong>Invoice ID:</strong> <span id="modalInvoiceId"></span></p>
+    <p><strong>Email:</strong> <span id="modalUserEmail"></span></p>
+    <p><strong>Phone:</strong> <span id="modalPhone"></span></p>
+    <p><strong>Date:</strong> <span id="modalDate"></span></p>
+    <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+    <h3>Items</h3>
+    <table style="border-collapse: collapse; width:100%;">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Size</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody id="modalItemTable"></tbody>
+    </table>
+    <h3>Total: K<span id="modalTotal"></span></h3>
+  </div>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
+    authDomain: "users-3eea8.firebaseapp.com",
+    databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
+    projectId: "users-3eea8",
+    storageBucket: "users-3eea8.appspot.com",
+    messagingSenderId: "64474198792",
+    appId: "1:64474198792:web:112b85b18a17a3f444f2bd"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  emailjs.init("a46Lwy6avdXyTbAtF");
+
+  const username = localStorage.getItem("username");
+  if (!username) {
+    alert("User not logged in.");
+    window.location.href = "/login";
+  }
+
+  const usernameKey = username.replace(/\./g, "_");
+  document.getElementById("userEmail").innerText = username;
+  document.getElementById("invoiceDate").innerText = new Date().toLocaleString();
+
+  let cartItems = [];
+  let total = 0;
+
+  firebase.database().ref("carts/" + usernameKey).once("value", snapshot => {
+    if (snapshot.exists()) {
+      cartItems = [];
+      snapshot.forEach(child => {
+        const item = child.val();
+        const itemPrice = parseFloat(item.price);
+        const itemQuantity = parseInt(item.quantity);
+        const itemTotal = itemPrice * itemQuantity;
+
+        cartItems.push({ ...item, price: itemPrice, quantity: itemQuantity });
+
+        const row = `
+          <tr>
+            <td>${item.name}</td>
+            <td>${item.size}</td>
+            <td>${itemQuantity}</td>
+            <td>K${itemPrice.toFixed(2)}</td>
+            <td>K${itemTotal.toFixed(2)}</td>
+          </tr>
+        `;
+        document.getElementById("itemTableBody").innerHTML += row;
+        total += itemTotal;
+      });
+
+      document.getElementById("totalAmount").innerText = total.toFixed(2);
+      document.getElementById("invoiceBox").style.display = "block";
+    } else {
+      alert("Your cart is empty.");
+    }
+  });
+
+  function generateHTMLTable(items) {
+    return `
+      <table border="1" cellpadding="10" cellspacing="0" style="border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Size</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(item => `
+            <tr>
+              <td>${item.name}</td>
+              <td>${item.size}</td>
+              <td>${item.quantity}</td>
+              <td>K${item.price.toFixed(2)}</td>
+              <td>K${(item.price * item.quantity).toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function submitCheckout() {
+    const phone = document.getElementById("phoneNumber").value.trim();
+    if (!phone || phone.length < 7) {
+      alert("Please enter a valid phone number.");
+      return;
+    }
+
+    const simpleId = "INV-" + Math.floor(Math.random() * 90000 + 10000);
+    const invoiceRef = db.ref("checkouts/" + simpleId);
+
+    const invoice = {
+      id: simpleId,
+      userEmail: username,
+      phoneNumber: phone,
+      items: cartItems,
+      total: total,
+      status: "awaiting payment",
+      timestamp: Date.now()
+    };
+
+    invoiceRef.set(invoice);
+
+    // Clear user cart in Firebase and localStorage
+    db.ref("carts/" + usernameKey).remove();
+    localStorage.removeItem("cart"); // Assuming cart was stored here
+
+    emailjs.send("service_fumeeim", "template_0gtw24p", {
+      to_email: username,
+      user_email: username,
+      phone_number: phone,
+      invoice_date: new Date().toLocaleString(),
+      invoice_table: generateHTMLTable(cartItems),
+      invoice_total: total.toFixed(2),
+      status: "awaiting payment"
+    }).then(() => {
+      alert("Invoice submitted and email sent!");
+      window.location.reload();
+    }).catch(err => {
+      console.error("EmailJS error:", err);
+      alert("There was an error sending the invoice.");
+    });
+  }
+
+  function closeModal() {
+    document.getElementById("invoiceModal").style.display = "none";
+  }
+
+function loadInvoices() {
+    const invoiceList = document.getElementById("invoiceList");
+    invoiceList.innerHTML = "";
+
+    db.ref("checkouts").orderByChild("userEmail").equalTo(username).once("value", snapshot => {
+      if (!snapshot.exists()) {
+        invoiceList.innerHTML = "<li>No past invoices found.</li>";
+        return;
+      }
+
+      const data = snapshot.val();
+      const sortedInvoices = Object.entries(data).sort((a, b) => b[1].timestamp - a[1].timestamp);
+
+      sortedInvoices.forEach(([id, invoice]) => {
+        const li = document.createElement("li");
+        li.innerText = `Invoice ${id.slice(0, 6).toUpperCase()} - K${invoice.total.toFixed(2)} - ${new Date(invoice.timestamp).toLocaleString()}`;
+        li.onclick = () => showInvoiceModal(invoice);
+        invoiceList.appendChild(li);
+      });
+    });
+  }
+
+  function showInvoiceModal(invoice) {
+    document.getElementById("modalInvoiceId").innerText = invoice.id;
+    document.getElementById("modalUserEmail").innerText = invoice.userEmail;
+    document.getElementById("modalPhone").innerText = invoice.phoneNumber;
+    document.getElementById("modalDate").innerText = new Date(invoice.timestamp).toLocaleString();
+    document.getElementById("modalStatus").innerText = invoice.status;
+    document.getElementById("modalTotal").innerText = invoice.total.toFixed(2);
+
+    const modalTableBody = document.getElementById("modalItemTable");
+    modalTableBody.innerHTML = "";
+
+    invoice.items.forEach(item => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.name}</td>
+        <td>${item.size}</td>
+        <td>${item.quantity}</td>
+        <td>K${item.price.toFixed(2)}</td>
+        <td>K${(item.price * item.quantity).toFixed(2)}</td>
+      `;
+      modalTableBody.appendChild(tr);
+    });
+
+    document.getElementById("invoiceModal").style.display = "block";
+  }
+
+  function closeModal() {
+    document.getElementById("invoiceModal").style.display = "none";
+  }
+
+loadInvoices();
+</script>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+
+    function toggleMenu() {
+      const isActive = sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+
+      // Change button text
+      menuBtn.innerHTML = isActive ? 'back' : '<i class="fa fa-bars"> </i>';
+    }
+  </script>
+
+</body>
+</html>

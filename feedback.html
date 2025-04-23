@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+  <title>Feedback Form</title>
+  <style>
+    body {
+
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+      padding: 20px;
+      max-width: 400px;
+      margin: auto;
+      text-align: center;
+      overflow-x: hidden;
+      color: white;
+    }
+    .stars span {
+      font-size: 30px;
+      cursor: pointer;
+      color: gray;
+    }
+    .stars .selected {
+      color: orange;
+    }
+    textarea {
+      width: 100%;
+      height: 90px;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 10px;
+      
+      cursor: pointer;
+    }
+    #thankYouMessage {
+      display: none;
+      font-size: 20px;
+      margin-top: 20px;
+      color: green;
+      font-weight: bold;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      width: 100%;
+      height: 100%;
+      z-index: 9999;
+    }
+    .feedback-card {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: left;
+    }
+    .popup {
+      position: relative;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+color: black;
+      background: #fff;
+      border: 1px solid #aaa;
+      padding: 20px;
+      width: 300px;
+      max-height: 500px;
+      overflow-y: auto;
+      z-index: 10000;
+      display: none;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .popup-close {
+      margin-top: 10px;
+      cursor: pointer;
+      background: crimson;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      top: 5px;
+      right: 5px;
+      position: fixed;
+    }
+
+  .menu-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: #111;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1001;
+      transition: background 0.3s;
+      font-size: 100%;
+    }
+
+    .menu-btn:hover {
+      background: #333;
+    }
+
+    /* Sidebar Menu */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 260px;
+      height: 100%;
+      background: #1c1c1e;
+      color: #fff;
+      padding: 60px 20px;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 12px 0;
+      color: #ccc;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .sidebar a:hover {
+      color: #fff;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+  </style>
+</head>
+<body>
+
+
+<h2><i class="fa fa-comments"></i>
+  We appreciate your Feedback</h2>
+  <p>We are always looking for ways to improve your experience.<br>Please take a moment to evaluate and tell us what you think.</p>
+
+  <div class="stars" id="starContainer">
+    <span data-star="1">&#9733;</span>
+    <span data-star="2">&#9733;</span>
+    <span data-star="3">&#9733;</span>
+    <span data-star="4">&#9733;</span>
+    <span data-star="5">&#9733;</span>
+  </div>
+
+  <textarea id="feedbackText" placeholder="What can we do to improve your experience? (optional)" style=" max-width: 95%"></textarea><br>
+  <button onclick="submitFeedback()" style="width: 100%; height: 28px; border-radius: 4px; color: #2c3e50; font-size: 100%; font-weight: bold;">Submit my Feedback</button>
+
+  <div id="thankYouMessage">Thank you for your feedback!</div>
+  <div style="background-color: rgba(0, 0, 0, 0.2);" id="feedbackCardContainer"></div>
+  <button id="seeAllBtn" style="display:none; background: none; color: white; border: 0;" onclick="showAllFeedback()">See All</button>
+
+
+  <div class="popup" id="popup">
+<button class="popup-close" onclick="closePopup()">Close</button>
+<div style=" position: relative;">
+    <h3>Your Feedback</h3>
+    <div id="allFeedbackList"></div>
+    </div>
+  </div>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
+      authDomain: "users-3eea8.firebaseapp.com",
+      databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
+      projectId: "users-3eea8",
+      storageBucket: "users-3eea8.appspot.com",
+      messagingSenderId: "64474198792",
+      appId: "1:64474198792:web:112b85b18a17a3f444f2bd",
+      measurementId: "G-589S6DX627"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const stars = document.querySelectorAll('.stars span');
+    let selectedRating = 0;
+
+    stars.forEach(star => {
+      star.addEventListener('click', () => {
+        selectedRating = parseInt(star.getAttribute('data-star'));
+        updateStarColors(selectedRating);
+      });
+    });
+
+    function updateStarColors(rating) {
+      stars.forEach(star => {
+        const starVal = parseInt(star.getAttribute('data-star'));
+        star.classList.toggle('selected', starVal <= rating);
+      });
+    }
+
+    function submitFeedback() {
+      const feedback = document.getElementById('feedbackText').value.trim();
+      const username = localStorage.getItem('username') || 'Anonymous';
+
+      if (selectedRating === 0) {
+        alert("Please give a star rating.");
+        return;
+      }
+
+      // Fetch all the feedback for the current user
+      db.ref('feedback').orderByChild('username').equalTo(username).once('value').then(snapshot => {
+        const userReviews = snapshot.val();
+        const reviewsArray = userReviews ? Object.entries(userReviews) : [];
+
+        // If the user has 15 reviews, delete the oldest
+        if (reviewsArray.length >= 15) {
+          const oldestReviewKey = reviewsArray[0][0]; // Get the key of the oldest review
+          db.ref('feedback/' + oldestReviewKey).remove() // Remove the oldest review
+            .then(() => {
+              console.log('Oldest review deleted');
+              submitNewReview(feedback, username);
+            })
+            .catch(error => {
+              console.error('Error deleting oldest review:', error);
+            });
+        } else {
+          submitNewReview(feedback, username);
+        }
+      });
+    }
+
+    function submitNewReview(feedback, username) {
+      const feedbackData = {
+        username: username,
+        rating: selectedRating,
+        message: feedback,
+        timestamp: new Date().toISOString()
+      };
+
+      // Submit the new feedback
+      db.ref('feedback').push(feedbackData)
+        .then(() => {
+          document.getElementById('feedbackText').value = '';
+          updateStarColors(0);
+          selectedRating = 0;
+          showThankYou();
+          setTimeout(() => location.reload(), 1000);
+        })
+        .catch(error => {
+          alert("Error saving feedback: " + error.message);
+        });
+    }
+
+    function deleteFeedback(key) {
+      if (confirm('Are you sure you want to delete this feedback?')) {
+        db.ref('feedback/' + key).remove()
+          .then(() => {
+            alert('Feedback deleted successfully.');
+            location.reload();
+          })
+          .catch(error => {
+            alert('Error deleting feedback: ' + error.message);
+          });
+      }
+    }
+
+    function showAllFeedback() {
+      document.getElementById('popup').style.display = 'block';
+    }
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+    }
+
+    function showThankYou() {
+      const message = document.getElementById("thankYouMessage");
+      message.style.display = "block";
+      launchConfetti();
+    }
+
+    function launchConfetti() {
+      const duration = 3 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+      function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      const interval = setInterval(function () {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) return clearInterval(interval);
+
+        const particleCount = 50 * (timeLeft / duration);
+        confetti(Object.assign({}, defaults, {
+          particleCount,
+          origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 }
+        }));
+      }, 250);
+    }
+
+    window.onload = () => {
+      const container = document.getElementById('feedbackCardContainer');
+      const allList = document.getElementById('allFeedbackList');
+      const currentUser = localStorage.getItem('username') || 'Anonymous';
+      let userFeedbacks = [];
+
+      db.ref('feedback').once('value').then(snapshot => {
+        const feedbacks = snapshot.val();
+        if (!feedbacks) return;
+
+        Object.entries(feedbacks).forEach(([key, data]) => {
+          if (data.username === currentUser) {
+            userFeedbacks.push({ ...data, key });
+          }
+        });
+
+        if (userFeedbacks.length > 0) {
+          const latest = userFeedbacks[userFeedbacks.length - 1];
+          container.innerHTML = `
+            <div class="feedback-card">
+              <strong style="color: #C1E5F7">${latest.username}</strong><br>
+<p style="color: orange; margin: 0;">
+              ${'★'.repeat(latest.rating)}${'☆'.repeat(5 - latest.rating)}</p><br>
+              ${latest.message ? latest.message : '<em>No comment</em>'}<br>
+              <button style=" color: #FF5757; background: none; " onclick="deleteFeedback('${latest.key}')">Delete</button>
+            </div>
+          `;
+        }
+
+        if (userFeedbacks.length > 1) {
+          document.getElementById('seeAllBtn').style.display = 'inline-block';
+        }
+
+        allList.innerHTML = '';
+        userFeedbacks.forEach(item => {
+          const div = document.createElement('div');
+          div.style.borderBottom = '1px solid #ccc';
+          div.style.marginBottom = '10px';
+
+          div.innerHTML = `
+            <strong>${item.username}</strong><br>
+            ${'★'.repeat(item.rating)}${'☆'.repeat(5 - item.rating)}<br>
+            ${item.message ? item.message : '<em>No comment</em>'}<br>
+            <button onclick="deleteFeedback('${item.key}')">Delete</button><br><br>
+          `;
+          allList.appendChild(div);
+        });
+      });
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OT Store</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+color: #2c3e50;
+      margin: 0;
+      padding: 0px;
+    background: linear-gradient(to right, #white, #ffffff);
+    }
+    h1, h2 {
+      text-align: left;
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    h1{
+      margin: 10px;
+      font-size: 30px;
+    }
+    #usernameDisplay {
+      font-weight: bold;
+      color: #333;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(4, auto);
+      gap: 10px;
+      justify-items: center;
+      align-items: start;
+      max-width: 100%;
+      margin: 0 auto;
+      min-width: 100%;
+      min-height: 400px;
+column-gap: none;
+overflow-x: auto;
+
+
+
+    }
+    .card {
+      width: 110px;
+      border: 1px solid #2c3e50;
+      padding: 4px;
+      border-radius: 4px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      position: relative;
+      cursor: pointer;
+      background: #fff;
+min-height: 126px;
+overflow: hidden;
+
+    }
+    .card img {
+      width: 100%;
+      height: 85px;
+      object-fit: cover;
+      border-radius: 2px;
+    }
+    .card h3 {
+      font-size: 9px;
+      margin: 2px 0;
+      line-height: 1.1;
+      color:  #2c3e50;
+    }
+    .card p {
+      font-size: 9px;
+      margin: 1px 0;
+      padding-right: 8px;
+      color:  #2c3e50;
+    }
+    .add-btn {
+      height: 20px;
+      width: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      position: absolute;
+      bottom: 0px;
+      right: 0px;
+      background: #2c3e50;
+      color: white;
+      border: none;
+      padding: 1px 4px;
+      font-size: 8px;
+      cursor: pointer;
+      border-top-left-radius: 3px;
+    }
+    #cartButton{
+      position: fixed;
+      top: 15px;
+      right: 60px;
+      background: none;
+      color: white;
+      padding: 4px 8px;
+      font-size: 100%;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+  #cartCount {
+      position: absolute;
+      bottom: -6px;
+      left: -6px;
+      background: red;
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
+      border-radius: 50%;
+      padding: 2px 6px;
+    }
+
+
+    #logoutBtn {
+      position: absolute;
+      top: 60px;
+      right: 50px;
+      background: #dc3545;
+      color: white;
+      padding: 4px 8px;
+      font-size: 10px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    .pagination {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .pagination button {
+      margin: 2px;
+      padding: 3px 6px;
+      font-size: 14px;
+      border: none;
+      border-radius: 3px;
+      background-color: white;
+      color:  #356E8D;
+      cursor: pointer;
+    }
+    .pagination button:disabled {
+      color: #999;
+    }
+ #logo1 {
+    position: relative;
+    width: 100%;
+    min-height: 250px;
+    border-bottom: 3px solid #2c3e50;
+    margin-bottom: 150px;
+box-shadow: 0px 0px 5px  #356E8D;
+  }
+
+  #logo1 .media-container {
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+  }
+
+  #logo1 img,
+  #logo1 video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+position: relative;
+  }
+
+#logo2 {
+  position: absolute;
+  bottom: -100px;
+  left: 28%;
+  transform: translateX(-50%);
+  height: 200px;
+  width: 200px;
+  border-radius: 50%;
+  border: 3px solid #2c3e50;
+  z-index: 2;
+  background-color: white;
+  overflow: hidden;
+
+  box-shadow: 0px 0px 5px #356E8D;
+
+  animation: logoSlideUp 1.2s ease-out forwards, logoPulse 3s infinite ease-in-out;
+  opacity: 0;
+}
+
+/* Slide in from bottom */
+@keyframes logoSlideUp {
+  from {
+    transform: translateX(-50%) translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Subtle glowing effect */
+@keyframes logoPulse {
+  0%, 100% {
+    box-shadow: 0px 0px 5px #356E8D;
+  }
+  50% {
+    box-shadow: 0px 0px 50px #356E8D;
+
+ }
+}
+
+
+  #logo2 img,
+  #logo2 video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+
+  }
+
+
+  #avatarCircle {
+    top: 10px;
+    right: 10px;
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    background-color: #007bff;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+z-index: 9999;
+border: solid 1px white;
+
+animation: logoPulse 3s infinite ease-in-out;
+
+ }
+.section-title {
+      text-align: center;
+      font-size: 24px;
+      margin: 20px 0 10px;
+    }
+
+    /* GALLERY SECTION */
+    .gallery-container {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      height: 300px;
+    }
+    .gallery-wrapper {
+      display: flex;
+      transition: transform 0.5s ease;
+    }
+    .gallery-slide {
+      flex: 0 0 100%;
+      width: 100%;
+      height: 300px;
+    }
+    .gallery-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .dots {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .dot {
+      height: 10px;
+      width: 10px;
+      margin: 0 5px;
+      background-color: #bbb;
+      border-radius: 50%;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .dot.active {
+      background-color: #717171;
+    }
+
+    /* ADVERTISEMENT SECTION */
+    .ad-container {
+      position: relative;
+      width: 100%;
+      height: 300px;
+      overflow: hidden;
+    }
+    .ad-slide {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+
+    }
+    .ad-slide.active {
+      opacity: 1;
+      z-index: 1;
+    }
+    .ad-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      margin-bottom: 100px;
+    }
+    .ad-overlay {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 10px;
+      max-width: 70%;
+      border-radius: 6px;
+      margin-bottom: 30px;
+    }
+    .shop-now {
+      background-color: #ff4081;
+      border: none;
+      padding: 10px 20px;
+      color: white;
+      font-weight: bold;
+      border-radius: 5px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .gallery-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  font-size: 24px;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 10;
+  border-radius: 4px;
+}
+.prev-btn {
+  left: 10px;
+}
+.next-btn {
+  right: 10px;
+}
+ 
+
+    .assistance-box {
+      text-align: center;
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      animation: fadeInUp 1s ease-out;
+    }
+
+    .assistance-box h1 {
+      font-size: 2em;
+      color: #2c3e50;
+      margin-bottom: 25px;
+      animation: popIn 0.8s ease-in-out;
+    }
+
+    .ask-btn {
+      padding: 12px 30px;
+      font-size: 1.1em;
+      font-weight: bold;
+      background: linear-gradient(135deg, #42a5f5, #478ed1);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 14px rgba(66, 165, 245, 0.4);
+    }
+
+    .ask-btn:hover {
+      background: linear-gradient(135deg, #478ed1, #42a5f5);
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(66, 165, 245, 0.5);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .menu-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: #111;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1001;
+      transition: background 0.3s;
+      font-size: 100%;
+    }
+
+    .menu-btn:hover {
+      background: #333;
+    }
+
+    /* Sidebar Menu */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 260px;
+      height: 100%;
+      background: #1c1c1e;
+      color: #fff;
+      padding: 60px 20px;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 12px 0;
+      color: #ccc;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .sidebar a:hover {
+      color: #fff;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+
+      #
+    p {
+      font-size: 8px;
+      line-height: 1.6;
+    }
+
+    sup a {
+      text-decoration: none;
+      color: #1abc9c;
+      font-size: 8px;
+    }
+
+    sup a:hover {
+      text-decoration: underline;
+    }
+
+    #footnotes {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid #7f8c8d;
+      font-size: 0.95em;
+      color: #bdc3c7;
+background-color: #2c3e50
+    }
+
+    #footnotes p {
+      margin: 5px 0;
+    }
+
+  </style>
+</head>
+<body>
+  <script>
+    // Redirect if not logged in
+    const userEmail = localStorage.getItem('username');
+    if (!userEmail) {
+      window.location.href = 'signup.html';
+    }
+  </script>
+
+<h4 style="position: fixed; text-align: center; z-index: 1002; left: 20%; color: white;">OpiumTrim.online</h4>
+
+<div style="width: 100%; height: 60px; background-color: black; isolation: isolate; position: fixed; z-index: 1000; "></div>
+
+  <nav style="position: relative; background-color: black;">
+
+<div id="avatarCircle" title="Profile"></div>
+  
+  <button id="cartButton" onclick="window.location.href='cart.html'"><i class="fa fa-shopping-cart"></i> <span id="cartCount">0</span></button>
+</nav>
+
+  <button class="menu-btn" id="menuBtn" onclick="toggleMenu()"><i class="fa fa-bars"></i></button>
+
+  <div class="sidebar" id="sidebar">
+
+<button id="logoutBtn" onclick="logout()"><i class="fa fa-sign-out-alt"></i>Logout</button>
+    <h2>Menu</h2>
+
+    <a href="index.html"><i class="fa fa-home"></i>  Home</a>
+    <a href="profile.html"><i class=" fa fa-user"></i>  Profile</a>
+<a href="index.html#productContainer"><i class="fa fa-store"></i>  Store</a>
+    <a href="cart.html"><i class="fa fa-shopping-cart"></i>  Cart</a>
+<a href="checkout.html"><i class="fa fa-credit-card"></i>  Checkout</a>
+    <a href="index.html#AI"><i class="fa fa-question-circle"></i>  Help</a>
+    <a href="index.html#feed"><i class="fa fa-comments"></i>  Feedback</a>
+<a href="index.html#gallery-container"><i class="fa fa-images"></i>  Gallery</a>
+<a href="admin.html"><i class="fa fa-user-lock"></i>  Admins</a>
+
+
+  </div>
+
+  <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+
+<div id="logo1">
+  <div class="media-container" id="logo1Media"></div>
+  <div id="logo2"></div>
+</div>
+
+
+<div style="text-align: left; margin-bottom: 10px; ">
+ 
+<h1 style="margin-top: 20px; font-style: Montserrat;  "><i class="fa fa-fire"></i>New Arrivals</h1>
+<div class="container" style="   padding-bottom: 50px; " id="recentContainer">
+
+ <i style="margin-top: 100px; margin-left: 175px;" class="fa fa-spinner fa-spin fa-4x"></i> 
+
+
+</div>
+</div>
+
+  <div style="padding-bottom: 50px; padding-top: 50px; background: rgba(0,0,0,0.8); color: white;">
+ <h1><i class="fa fa-shopping-bag"></i>  Shop with Us</h1>
+<div class="ad-container" id="adContainer">
+ <i style="margin-top: 100px; margin-left: 175px;" class="fa fa-spinner fa-spin fa-4x"></i>
+</div>
+<iframe src="feedback.html" style="height:700px; width: 100%; margin-top: 50px; border: 0;" scrolling="no" id="feed"></iframe>
+</div>
+   
+
+ 
+<h1 style=" margin-top: 50px; ">
+  <i id="home-icons"class="fa fa-store" > </i> 
+Store</h1>
+
+
+<div style="margin: 10px;">
+  <input type="text" id="searchInput" placeholder="Search by name or description..." oninput="applyFilters()" style="padding: 5px; font-size: 12px; width: 90%;" />
+  <select id="categoryFilter" onchange="applyFilters()" style="padding: 5px; font-size: 12px; color: #2c3e50; border-radius: 4px; ">
+    <option value="">All Categories</option>
+ <option value="shirts">Shirts</option>
+  <option value="hoodies">Hoodies</option>
+  <option value="bottoms">Bottoms</option>
+  <option value="headwear">Headwear</option>
+  <option value="footwear">Footwear</option>
+  <option value="accessories">Accessories</option>
+  <option value="others">Others</option>
+  </select>
+  <select id="priceFilter" onchange="applyFilters()" style="padding: 5px; font-size: 12px; color: #2c3e50; border-radius: 4px">
+    <option value="">All Prices</option>
+    <option value="0-20">Below K20</option>
+    <option value="20-50">K20 - K50</option>
+  <option value="50-100">K50 - K100</option>
+  <option value="100-300">K100 - K300</option>
+  <option value="300-500">K300 - K500</option>
+    <option value="500-">Above K500</option>
+  </select>
+</div>
+  <div class="container" id="productContainer" style="min-height: 640px;">
+
+ <i style="margin-top: 100px; margin-left: 175px;" class="fa fa-spinner fa-spin fa-4x"></i>
+</div>
+  <div class="pagination">
+    <button  onclick="prevPage()" id="prevBtn"> previous </button>
+    <button  onclick="nextPage()" id="nextBtn">next</button>
+  </div>
+
+ <div style="margin-top: 100px;"class="section-title"><h1><i class="fa fa-image"></i>Gallery</h1></div>
+<div class="gallery-container" id="gallery-container">
+  <div class="gallery-wrapper" id="galleryWrapper">
+
+ <i style="margin-top: 100px; margin-left: 175px;" class="fa fa-spinner fa-spin fa-4x"></i>
+</div>
+
+</div>
+<div style="margin-bottom:  100px; "class="dots" id="galleryDots"></div>
+
+  <div class="assistance-box" id="AI">
+    <h1>Need Assistance?</h1>
+    <button onclick="window.location='chatgpt.html'"class="ask-btn">Ask Avanti AI</button>
+  </div>
+
+<!-- Size and Quantity Modal -->
+<div id="cartModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000;">
+  <div style="background:#fff; padding:20px; border-radius:10px; width:300px;">
+    <h3 id="productTitle"></h3>
+    <label for="sizeSelect">Select Size:</label>
+    <select id="sizeSelect" style="width:100%; margin:10px 0;"></select>
+
+   
+<label>Quantity:</label>
+<div style="display:flex; align-items:center; justify-content:space-between; width:100%; margin:10px 0;">
+  <button id="decreaseQty" style="width:30px;">-</button>
+  <span id="quantityDisplay" style="flex-grow:1; text-align:center;">1</span>
+  <button id="increaseQty" style="width:30px;">+</button>
+</div>
+
+
+
+    <div style="text-align:right;">
+    <button onclick="confirmCart()">Add to Cart</button>
+<button onclick="closeCartModal()">Cancel</button>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+  <div id="footnotes">
+    <p id="footnote1"><strong>copyright </strong><i class="fa fa-copyright"></i>2025 OpiumTrim.online all rights reserverd </p>
+  </div>
+
+  <script>
+    // Display user's email
+    
+
+
+    function logout() {
+      localStorage.removeItem('username');
+      alert("Logged out successfully.");
+      window.location.href = 'signup.html';
+    }
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_LpxzRuzJnz6XQX2hlMGU3yxY1s6u9ZA",
+      authDomain: "items-7984c.firebaseapp.com",
+      databaseURL: "https://items-7984c-default-rtdb.firebaseio.com",
+      projectId: "items-7984c",
+      storageBucket: "items-7984c.appspot.com",
+      messagingSenderId: "951906140915",
+      appId: "1:951906140915:web:b360bfac21a1149ca12d86",
+      measurementId: "G-7PH10WKBTF"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const productContainer = document.getElementById('productContainer');
+const userFirebaseConfig = {
+    apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
+    authDomain: "users-3eea8.firebaseapp.com",
+    databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
+    projectId: "users-3eea8",
+    storageBucket: "users-3eea8.appspot.com",
+    messagingSenderId: "64474198792",
+    appId: "1:64474198792:web:112b85b18a17a3f444f2bd",
+    measurementId: "G-589S6DX627"
+  };
+
+  // Initialize second app
+  const userApp = firebase.initializeApp(userFirebaseConfig, "userApp");
+  const userDb = userApp.database();
+
+
+
+
+    let allProducts = [];
+    let currentPage = 1;
+    const itemsPerPage = 12;
+
+let currentProduct = null;
+let currentKey = null;
+
+function updateCartCount() {
+    if (!userEmail || !userDb) return;
+
+    const safeEmail = userEmail.replace(/\./g, '_');
+    userDb.ref('carts/' + safeEmail).once('value').then(snapshot => {
+      let count = 0;
+      snapshot.forEach(child => {
+        const item = child.val();
+        count += item.quantity || 0;
+      });
+      document.getElementById('cartCount').textContent = count;
+    });
+  }
+
+  // Call on load
+  updateCartCount();
+
+    
+
+function addToCart(product, key) {
+  currentProduct = product;
+  currentKey = key;
+
+  document.getElementById('productTitle').textContent = `Add ${product.name}`;
+
+  const sizeSelect = document.getElementById('sizeSelect');
+  sizeSelect.innerHTML = '';
+  product.sizes.forEach(size => {
+    const option = document.createElement('option');
+    option.value = size;
+    option.textContent = size;
+    sizeSelect.appendChild(option);
+  });
+
+  let currentQty = 1;
+  const maxQty = product.quantity - 1;
+  const quantityDisplay = document.getElementById('quantityDisplay');
+  quantityDisplay.textContent = currentQty;
+
+  document.getElementById('decreaseQty').onclick = () => {
+    if (currentQty > 1) {
+      currentQty--;
+      quantityDisplay.textContent = currentQty;
+    }
+  };
+
+  document.getElementById('increaseQty').onclick = () => {
+    if (currentQty < maxQty) {
+      currentQty++;
+      quantityDisplay.textContent = currentQty;
+    }
+  };
+
+  // Show modal
+  document.getElementById('cartModal').style.display = 'flex';
+}
+function confirmCart() {
+  const size = document.getElementById('sizeSelect').value;
+  const quantity = parseInt(document.getElementById('quantityDisplay').textContent);
+  const product = currentProduct;
+  const key = currentKey;
+
+  if (!size || !product.sizes.includes(size)) {
+    alert("Invalid size selected.");
+    return;
+  }
+
+  if (isNaN(quantity) || quantity <= 0 || quantity > (product.quantity - 1)) {
+    alert(`Invalid quantity. Max allowed is ${product.quantity - 1}.`);
+    return;
+  }
+
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  const existing = cart.find(item => item.id === product.key && item.size === size);
+  const totalInCart = existing ? existing.quantity + quantity : quantity;
+
+  if (totalInCart > product.quantity) {
+    alert(`Total in cart cannot exceed available stock (${product.quantity}).`);
+    return;
+  }
+
+  if (existing) {
+    existing.quantity += quantity;
+  } else {
+    cart.push({
+      id: product.key,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      size,
+      quantity,
+      imageUrl: product.imageUrl
+    });
+  }
+
+  localStorage.setItem('cart', JSON.stringify(cart));
+
+  const userId = userEmail.replace(/\./g, '_');
+  userDb.ref(`carts/${userId}`).push({
+    productId: product.key,
+    name: product.name,
+    description: product.description,
+    price: product.price,
+    size: size,
+    quantity: quantity,
+    imageUrl: product.imageUrl,
+    timestamp: Date.now()
+  });
+
+  alert(`${product.name} (Size: ${size}, Quantity: ${quantity}) added to cart!`);
+
+function closeCartModal() {
+  document.getElementById('cartModal').style.display = 'none';
+  currentProduct = null;
+  currentKey = null;
+}
+
+  closeCartModal();
+
+}
+
+    function showProducts() {
+  productContainer.innerHTML = '';
+
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const pageProducts = allProducts.slice(start, end);
+
+  pageProducts.forEach(product => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    card.innerHTML = `
+      <button class="add-btn" onclick="event.stopPropagation(); addToCart(${JSON.stringify(product).replace(/"/g, '&quot;')}, '${product.key}')"><i class="fa fa-cart-plus"></i></button>
+      <img src="${product.imageUrl}" alt="${product.name}">
+      <h3>${product.name}</h3>
+      <p>${product.description || ''}</p>
+      <p style="color: green;">K${product.price}</p>
+    `;
+
+    card.onclick = () => {
+      window.location.href = `item.html?id=${product.key}`;
+    };
+
+    productContainer.appendChild(card);
+  });
+
+  document.getElementById('prevBtn').disabled = currentPage === 1;
+  document.getElementById('nextBtn').disabled = end >= allProducts.length;
+}
+
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+// Call this once after products are loaded
+shuffleArray(allProducts);
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        showProducts();
+      }
+    }
+
+    function nextPage() {
+      if ((currentPage * itemsPerPage) < allProducts.length) {
+        currentPage++;
+        showProducts();
+      }
+    }
+
+
+
+    function loadProducts() {
+      db.ref('products').on('value', snapshot => {
+        allProducts = [];
+        snapshot.forEach(childSnapshot => {
+          const product = childSnapshot.val();
+          product.key = childSnapshot.key;
+          if (!product.sizes || !Array.isArray(product.sizes) || product.sizes.length === 0) return;
+          allProducts.push(product);
+        });
+        currentPage = 1;
+        
+shuffleArray(allProducts);
+showProducts();
+
+      });
+    }
+
+    function loadRecentAdditions() {
+  db.ref('products')
+    .orderByChild('timestamp')  // ensure products have timestamp
+    .limitToLast(9)
+    .on('value', snapshot => {
+      const recentContainer = document.getElementById('recentContainer');
+      recentContainer.innerHTML = '';
+      const items = [];
+
+      snapshot.forEach(childSnapshot => {
+        const item = childSnapshot.val();
+        item.key = childSnapshot.key;
+        if (!item.sizes || !Array.isArray(item.sizes) || item.sizes.length === 0) return;
+        items.push(item);
+      });
+
+      // Reverse for latest first
+      items.reverse();
+
+      items.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <button class="add-btn" onclick="event.stopPropagation(); addToCart(${JSON.stringify(product).replace(/"/g, '&quot;')}, '${product.key}')"><i class="fa fa-cart-plus"></i></button>
+          <img src="${product.imageUrl}" alt="${product.name}">
+          <h3>${product.name}</h3>
+          <p>${product.description || ''}</p>
+          <p style="color: green;">K${product.price}</p>
+        `;
+        card.onclick = () => {
+          window.location.href = `item.html?id=${product.key}`;
+        };
+        recentContainer.appendChild(card);
+      });
+    });
+}
+function closeCartModal() {
+  document.getElementById('cartModal').style.display = 'none';
+  currentProduct = null;
+  currentKey = null;
+}
+
+
+
+    
+
+loadProducts();
+loadRecentAdditions();
+
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
+    authDomain: "users-3eea8.firebaseapp.com",
+    databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
+    projectId: "users-3eea8",
+    storageBucket: "users-3eea8.appspot.com",
+    messagingSenderId: "64474198792",
+    appId: "1:64474198792:web:112b85b18a17a3f444f2bd",
+    measurementId: "G-589S6DX627"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const galleryWrapper = document.getElementById('galleryWrapper');
+  const galleryDots = document.getElementById('galleryDots');
+  const adContainer = document.getElementById('adContainer');
+
+  let galleryIndex = 0;
+  let adIndex = 0;
+  let gallerySlides = [];
+
+
+
+  function showGallerySlide(index) {
+    if (index < 0) index = gallerySlides.length - 1;
+    if (index >= gallerySlides.length) index = 0;
+
+    galleryIndex = index;
+    galleryWrapper.style.transition = 'transform 0.4s ease';
+    galleryWrapper.style.transform = `translateX(-${galleryIndex * 100}%)`;
+
+    [...galleryDots.children].forEach((dot, i) => {
+      dot.classList.toggle('active', i === galleryIndex);
+    });
+  }
+
+  function loadGallerySlides(data) {
+    galleryWrapper.innerHTML = '';
+    galleryDots.innerHTML = '';
+    gallerySlides = data;
+
+    data.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'gallery-slide';
+      div.innerHTML = `<img src="${item.url}" alt="Gallery image">`;
+      galleryWrapper.appendChild(div);
+
+      const dot = document.createElement('span');
+      dot.className = 'dot' + (i === 0 ? ' active' : '');
+      dot.onclick = () => showGallerySlide(i);
+      galleryDots.appendChild(dot);
+
+      // Add swipe events to each image container
+      addSwipeEvents(div);
+    });
+
+    showGallerySlide(0);
+  }
+
+  function loadAds(data) {
+    adContainer.innerHTML = '';
+
+    data.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'ad-slide' + (i === 0 ? ' active' : '');
+      div.innerHTML = `
+        <img src="${item.url}" alt="Advertisement">
+        <div class="ad-overlay">
+          <div><h5 style="margin-bottom: 4px;">${item.comment || 'No comment provided.'}</h5></div>
+          <button class="shop-now" onclick="location.href='#productContainer'">Shop Now</button>
+        </div>
+      `;
+      adContainer.appendChild(div);
+    });
+
+    setInterval(() => {
+      const slides = document.querySelectorAll('.ad-slide');
+      slides.forEach((slide, i) => slide.classList.toggle('active', i === adIndex));
+      adIndex = (adIndex + 1) % data.length;
+    }, 4000);
+  }
+
+  function fetchGalleryAndAds() {
+    const galleryRef = ref(db, "gallery");
+    const adRef = ref(db, "advertisement");
+
+    onValue(galleryRef, snapshot => {
+      const data = snapshot.val() || {};
+      loadGallerySlides(Object.values(data));
+    });
+
+    onValue(adRef, snapshot => {
+      const data = snapshot.val() || {};
+      loadAds(Object.values(data));
+    });
+  }
+
+  fetchGalleryAndAds();
+
+  // Swipe Logic for individual slide containers
+  let isDragging = false;
+  let startX = 0;
+
+  const startDrag = (e) => {
+    isDragging = true;
+    startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+  };
+
+  const duringDrag = (e) => {
+    if (!isDragging) return;
+    const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+    const diff = currentX - startX;
+
+    galleryWrapper.style.transition = 'none';
+    galleryWrapper.style.transform = `translateX(-${galleryIndex * 100 - (diff / galleryWrapper.offsetWidth) * 100}%)`;
+  };
+
+  const endDrag = (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+
+    const endX = e.type.includes('mouse') ? e.clientX : e.changedTouches[0].clientX;
+    const diff = endX - startX;
+
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        galleryIndex--;
+      } else {
+        galleryIndex++;
+      }
+    }
+
+    showGallerySlide(galleryIndex);
+  };
+
+  const addSwipeEvents = (element) => {
+    element.addEventListener('mousedown', startDrag);
+    element.addEventListener('mousemove', duringDrag);
+    element.addEventListener('mouseup', endDrag);
+    element.addEventListener('mouseleave', endDrag);
+
+    element.addEventListener('touchstart', startDrag);
+    element.addEventListener('touchmove', duringDrag);
+    element.addEventListener('touchend', endDrag);
+    element.addEventListener('touchcancel', endDrag);
+  };
+  
+  
+
+    
+  </script>
+
+<script>
+  function fetchCategories(products) {
+    const categorySet = new Set();
+    products.forEach(p => {
+      if (p.category) categorySet.add(p.category);
+    });
+    const categoryFilter = document.getElementById('categoryFilter');
+    categoryFilter.innerHTML = '<option value="">All Categories</option>';
+    categorySet.forEach(category => {
+      const option = document.createElement('option');
+      option.value = category;
+      option.textContent = category;
+      categoryFilter.appendChild(option);
+    });
+  }
+
+  function applyFilters() {
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+    const selectedCategory = document.getElementById('categoryFilter').value;
+    const selectedPrice = document.getElementById('priceFilter').value;
+
+    const filtered = allProducts.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchVal) ||
+                            (product.description && product.description.toLowerCase().includes(searchVal));
+      const matchesCategory = !selectedCategory || product.category === selectedCategory;
+      let matchesPrice = true;
+      if (selectedPrice) {
+        const [min, max] = selectedPrice.split('-');
+        const price = parseFloat(product.price || 0);
+        matchesPrice = (!min || price >= parseFloat(min)) && (!max || price <= parseFloat(max));
+      }
+      return matchesSearch && matchesCategory && matchesPrice;
+    });
+
+    displayProducts(filtered);
+  }
+
+  function displayProducts(products) {
+    productContainer.innerHTML = '';
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const pageItems = products.slice(startIndex, startIndex + itemsPerPage);
+    pageItems.forEach((product, index) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img src="${product.imageUrl}" alt="${product.name}" />
+        <h3>${product.name}</h3>
+        <p>${product.description}</p>
+        <p><b>K${product.price}</b></p>
+        <button class="add-btn" onclick='addToCart(${JSON.stringify(product)}, "${product.key}")'><i class="fa fa-cart-plus"></i></button>
+      `;
+
+card.onclick = () => {
+      window.location.href = `item.html?id=${product.key}`;
+    };
+      productContainer.appendChild(card);
+    });
+    document.getElementById('prevBtn').disabled = currentPage === 1;
+    document.getElementById('nextBtn').disabled = startIndex + itemsPerPage >= products.length;
+  }
+
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      applyFilters();
+    }
+  }
+
+  function nextPage() {
+    if ((currentPage - 1) * itemsPerPage + itemsPerPage < allProducts.length) {
+      currentPage++;
+      applyFilters();
+    }
+  }
+
+  // Update your fetch logic to load data and setup filters
+  db.ref('items').on('value', snapshot => {
+    const items = [];
+    snapshot.forEach(child => {
+      const product = child.val();
+      product.key = child.key;
+      items.push(product);
+    });
+    allProducts = items;
+    fetchCategories(allProducts);
+    applyFilters();
+  });
+
+</script>
+
+  <script>
+    function renderMedia(containerId, mediaData) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      if (!mediaData || !mediaData.url) {
+        container.innerText = "No media found";
+        return;
+      }
+
+      if (mediaData.type === "image") {
+        const img = document.createElement('img');
+        img.src = mediaData.url;
+        container.appendChild(img);
+      } else if (mediaData.type === "video") {
+        const video = document.createElement('video');
+        video.src = mediaData.url;
+        video.autoplay = true;
+        video.loop = true;
+        video.muted = true;
+        container.appendChild(video);
+      } else {
+        container.innerText = "Unsupported media type";
+      }
+    }
+
+    userDb.ref('logos').once('value').then(snapshot => {
+      const logos = snapshot.val();
+      renderMedia('logo1Media', logos.logo1);
+      renderMedia('logo2', logos.logo2);
+    }).catch(error => {
+      console.error("Error loading media:", error);
+    });
+  </script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const avatarEl = document.getElementById("avatarCircle");
+    const storedUsername = localStorage.getItem("username");
+
+    if (!avatarEl) return;
+
+    const hashToColor = (str) => {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 4) - hash);
+      }
+      return '#' + Array.from({ length: 3 }, (_, i) => {
+        const value = (hash >> (i * 8)) & 0xFF;
+        return ('00' + value.toString(16)).slice(-2);
+      }).join('');
+    };
+
+    const setAvatar = (email) => {
+      const letter = email.charAt(0).toUpperCase();
+      const bgColor = hashToColor(email);
+
+      avatarEl.textContent = letter;
+      avatarEl.style.backgroundColor = bgColor;
+      avatarEl.addEventListener('click', () => {
+        window.location.href = 'profile.html';
+      });
+    };
+
+    if (storedUsername) {
+      setAvatar(storedUsername);
+    } else {
+      avatarEl.textContent = '?';
+      avatarEl.style.backgroundColor = '#888';
+    }
+  });
+</script>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+
+    function toggleMenu() {
+      const isActive = sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+
+      // Change button text
+      menuBtn.innerHTML = isActive ? 'back' : '<i class="fa fa-bars"> </i>';
+    }
+  </script>
+
+
+
+
+</body>
+</html>
+		

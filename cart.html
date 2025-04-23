@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Your Cart</title>
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: linear-gradient(to right, #f8f9fa, #e9ecef);
+    }
+
+    .avatar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    #avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      font-size: 36px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #007bff;
+      color: white;
+      margin-bottom: 10px;
+    }
+
+    #usernameDisplay {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .cart-item {
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+      display: flex;
+      gap: 15px;
+    }
+
+    .cart-item img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .cart-info {
+      flex: 1;
+    }
+
+    button {
+      margin: 5px 10px 0 0;
+      padding: 5px 10px;
+      cursor: pointer;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+
+    button:hover {
+      background-color: #c82333;
+    }
+
+    #totalPrice {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .actions {
+      margin-top: 20px;
+    }
+
+    .actions button {
+      background-color: #28a745;
+    }
+
+    .actions button:hover {
+      background-color: #218838;
+    }
+  .menu-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: #111;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1001;
+      transition: background 0.3s;
+      font-size: 100%;
+    }
+
+    .menu-btn:hover {
+      background: #333;
+    }
+
+    /* Sidebar Menu */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 260px;
+      height: 100%;
+      background: #1c1c1e;
+      color: #fff;
+      padding: 60px 20px;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 12px 0;
+      color: #ccc;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .sidebar a:hover {
+      color: #fff;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+  </style>
+</head>
+<body>
+  <button class="menu-btn" id="menuBtn" onclick="toggleMenu()"><i class="fa fa-bars"></i></button>
+
+  <div class="sidebar" id="sidebar">
+
+<button id="logoutBtn" onclick="logout()"><i class="fa fa-sign-out-alt"></i>Logout</button>
+    <h2>Menu</h2>
+
+    <a href="index.html"><i class="fa fa-home"></i>  Home</a>
+    <a href="profile.html"><i class=" fa fa-user"></i>  Profile</a>
+<a href="index.html#productContainer"><i class="fa fa-store"></i>  Store</a>
+    <a href="cart.html"><i class="fa fa-shopping-cart"></i>  Cart</a>
+<a href="checkout.html"><i class="fa fa-credit-card"></i>  Checkout</a>
+    <a href="index.html#AI"><i class="fa fa-question-circle"></i>  Help</a>
+    <a href="index.html#feed"><i class="fa fa-comments"></i>  Feedback</a>
+<a href="index.html#gallery-container"><i class="fa fa-images"></i>  Gallery</a>
+<a href="admin.html"><i class="fa fa-user-lock"></i>  Admins</a>
+
+
+  </div>
+
+  <div class="avatar-container">
+    <div id="avatar">?</div>
+    <div id="usernameDisplay">Loading...</div>
+  </div>
+
+  <h2>Your Cart</h2>
+  <div id="cartContainer"></div>
+  <div id="totalPrice"></div>
+  <div class="actions">
+    <button onclick="location.href='checkout.html'">Checkout</button>
+    <button onclick="emptyCart()">Empty Cart</button>
+  </div>
+
+  <script>
+    const userFirebaseConfig = {
+      apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
+      authDomain: "users-3eea8.firebaseapp.com",
+      databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
+      projectId: "users-3eea8",
+      storageBucket: "users-3eea8.appspot.com",
+      messagingSenderId: "64474198792",
+      appId: "1:64474198792:web:112b85b18a17a3f444f2bd",
+      measurementId: "G-589S6DX627"
+    };
+
+    const userApp = firebase.initializeApp(userFirebaseConfig, "userApp");
+    const userDb = userApp.database();
+
+    const userEmail = localStorage.getItem("username");
+    const cartContainer = document.getElementById('cartContainer');
+    const totalPriceDisplay = document.getElementById('totalPrice');
+
+    function getSafeEmail(email) {
+      return email.replace(/\./g, '_');
+    }
+
+    function emptyCart() {
+      if (!userEmail) return;
+      const safeEmail = getSafeEmail(userEmail);
+      userDb.ref(`carts/${safeEmail}`).remove().then(() => {
+        location.reload();
+      });
+    }
+
+    function removeGroupedItems(keys) {
+      const safeEmail = getSafeEmail(userEmail);
+      const updates = {};
+      keys.forEach(key => updates[`carts/${safeEmail}/${key}`] = null);
+      userDb.ref().update(updates).then(() => {
+        location.reload();
+      });
+    }
+
+    function loadCart() {
+      if (!userEmail) {
+        cartContainer.innerHTML = '<p>No user logged in.</p>';
+        return;
+      }
+
+      const safeEmail = getSafeEmail(userEmail);
+      const userCartRef = userDb.ref(`carts/${safeEmail}`);
+
+      userCartRef.once('value').then(snapshot => {
+        const cartData = snapshot.val();
+        if (!cartData) {
+          cartContainer.innerHTML = '<p>Your cart is empty.</p>';
+          return;
+        }
+
+        const groupedItems = {};
+
+        for (const [key, item] of Object.entries(cartData)) {
+          const groupKey = `${item.name}_${item.size}`;
+          if (!groupedItems[groupKey]) {
+            groupedItems[groupKey] = { ...item, quantity: 0, keys: [] };
+          }
+          groupedItems[groupKey].quantity += item.quantity;
+          groupedItems[groupKey].keys.push(key);
+        }
+
+        let totalPrice = 0;
+
+        for (const group of Object.values(groupedItems)) {
+          const itemTotal = group.price * group.quantity;
+          totalPrice += itemTotal;
+
+          const div = document.createElement('div');
+          div.className = 'cart-item';
+          div.innerHTML = `
+            <img src="${group.imageUrl || 'https://via.placeholder.com/100'}" alt="${group.name}">
+            <div class="cart-info">
+              <h3>${group.name}</h3>
+              <p>${group.description}</p>
+              <p><strong>Price:</strong> K${group.price}</p>
+              <p><strong>Size:</strong> ${group.size}</p>
+              <p><strong>Quantity:</strong> ${group.quantity}</p>
+              <p><strong>Total:</strong> K${itemTotal}</p>
+              <button onclick='removeGroupedItems(${JSON.stringify(group.keys)})'>Remove All</button>
+            </div>
+          `;
+          cartContainer.appendChild(div);
+        }
+
+        totalPriceDisplay.innerText = `Grand Total: K${totalPrice}`;
+      });
+    }
+
+    // Avatar & Username Setup
+    function hashToColor(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 4) - hash);
+      }
+      return '#' + Array.from({ length: 3 }, (_, i) => {
+        const value = (hash >> (i * 8)) & 0xFF;
+        return ('00' + value.toString(16)).slice(-2);
+      }).join('');
+    }
+
+    function setAvatar(email) {
+      const avatar = document.getElementById('avatar');
+      const display = document.getElementById('usernameDisplay');
+      const letter = email.charAt(0).toUpperCase();
+      const color = hashToColor(email);
+
+      avatar.textContent = letter;
+      avatar.style.backgroundColor = color;
+      display.textContent = email;
+    }
+
+    if (userEmail) {
+      setAvatar(userEmail);
+    }
+
+    loadCart();
+  </script>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+
+    function toggleMenu() {
+      const isActive = sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+
+      // Change button text
+      menuBtn.innerHTML = isActive ? 'back' : '<i class="fa fa-bars"> </i>';
+    }
+  </script>
+</body>
+</html>

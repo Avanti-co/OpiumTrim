@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=0.43, maximum-scale=2.0, user-scalable=no">
+  <title>Invoice Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 30px;
+      background: #f9f9f9;
+      color: #333;
+    }
+
+    h2 {
+      color: #444;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 40px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 14px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .complete-btn {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .view-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    .modal-close {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .table-title {
+      margin-top: 40px;
+      font-size: 20px;
+      color: #666;
+    }
+
+ .menu-btn {
+      font-size: 100%;
+      height: 70px;
+      width: 70px;
+      position: fixed;
+      top: 10px;
+      left: 20px;
+      background: #111;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1001;
+      transition: background 0.3s;
+    }
+
+    .menu-btn:hover {
+      background: #333;
+    }
+
+    /* Sidebar Menu */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -60%;
+      width: 50%;
+      height: 100%;
+      background: #1c1c1e;
+      color: #fff;
+      padding: 60px 20px;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar h2 {
+      margin-top: 20px;
+      margin-bottom: 30px;
+      font-size: 50px;
+      font-weight: 600;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 20px 0;
+      color: #ccc;
+      text-decoration: none;
+      transition: color 0.3s;
+font-size: 30px;
+    }
+
+    .sidebar a:hover {
+      color: #fff;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+  </style>
+</head>
+<body>
+
+<h1 style="position: fixed; text-align: center; z-index: 1002; left: 35%; color: white; top: 0;">OpiumTrim.admins</h1>
+
+<div style="width: 100%; height: 80px; background-color: black; isolation: isolate; position: fixed; z-index: 1000; margin: 0; top: 0; left: 0;"></div>
+
+<button class="menu-btn" id="menuBtn" onclick="toggleMenu()"><i class="fa fa-bars"></i></button>
+
+  <div class="sidebar" id="sidebar">
+    <h2>Menu</h2>
+    <a href="admin.html#adminPanel"><i class="fa fa-home"></i>  Home</a>
+    <a href="logoUpload.html"><i class="fa fa-instagram"></i>  Logos</a>
+    <a href="media.html"><i class="fa fa-upload"></i>  Ads & media</a>
+    <a href="review-reply.html"><i class="fa fa-comments"></i>  User feedback</a>
+    <a href="viewInvoices.html"><i class="fa fa-file-invoice"></i>  Invoices</a>
+<a href="index.html"><i class="fa fa-store"></i>  View store</a>
+
+  </div>
+
+  <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+
+  <h2 style="margin-top: 100px; font-size: 60px;">Invoice Dashboard</h2>
+<div style="margin: 20px 0;">
+  <input type="text" id="searchInput" placeholder="Search by Invoice ID or Email..." style="width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px;">
+</div>
+
+
+  <div class="table-title">Awaiting Payment</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Invoice ID</th>
+        <th>User Email</th>
+        <th>Phone</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="awaitingTableBody"></tbody>
+  </table>
+
+  <div class="table-title">Completed</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Invoice ID</th>
+        <th>User Email</th>
+        <th>Phone</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="completedTableBody"></tbody>
+  </table>
+
+  <!-- Modal -->
+  <div class="modal" id="viewModal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeModal()">&times;</span>
+      <h3>Invoice Details</h3>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+<script>
+  // Initialize Firebase
+  const userDb = firebase.initializeApp({
+    apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
+    authDomain: "users-3eea8.firebaseapp.com",
+    databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
+    projectId: "users-3eea8"
+  }, "userDb").database();
+
+  const itemDb = firebase.initializeApp({
+    apiKey: "AIzaSyD_LpxzRuzJnz6XQX2hlMGU3yxY1s6u9ZA",
+    authDomain: "items-7984c.firebaseapp.com",
+    databaseURL: "https://items-7984c-default-rtdb.firebaseio.com",
+    projectId: "items-7984c"
+  }, "itemDb").database();
+
+  emailjs.init("VdZnwQXzlvXUMvOpB");
+
+  function renderInvoiceRow(invoice, key) {
+    const row = document.createElement("tr");
+    const safeItems = encodeURIComponent(JSON.stringify(invoice.items));
+    
+    row.innerHTML = `
+  <td>${key}</td>
+  <td>${invoice.userEmail}</td>
+  <td>${invoice.phoneNumber}</td>
+  <td>K${invoice.total.toFixed(2)}</td>
+  <td>${invoice.status}</td>
+  <td>
+    <button class="view-btn" data-id="${key}" data-items="${safeItems}">View</button>
+    ${invoice.status === "awaiting payment"
+      ? `<button class="complete-btn" data-id="${key}" data-total="${invoice.total}" data-email="${invoice.userEmail}" data-items="${safeItems}">Complete</button>`
+      : ''
+    }
+  </td>
+`;
+
+    return row;
+  }
+
+  // Load invoices
+  userDb.ref("checkouts").orderByChild("timestamp").once("value", snap => {
+    const data = snap.val() || {};
+    const keys = Object.keys(data).sort((a, b) => data[b].timestamp - data[a].timestamp);
+    const awaitingTbody = document.getElementById("awaitingTableBody");
+    const completedTbody = document.getElementById("completedTableBody");
+
+    keys.forEach(key => {
+      const invoice = data[key];
+      const row = renderInvoiceRow(invoice, key);
+      if (invoice.status === "complete") {
+        completedTbody.appendChild(row);
+      } else {
+        awaitingTbody.appendChild(row);
+      }
+    });
+
+    // Attach event listeners AFTER DOM is updated
+    attachEventListeners();
+  });
+
+  function attachEventListeners() {
+    document.querySelectorAll(".view-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const items = JSON.parse(decodeURIComponent(btn.dataset.items));
+        const key = btn.dataset.id;
+        viewInvoice(key, items);
+      });
+    });
+
+    document.querySelectorAll(".complete-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const items = JSON.parse(decodeURIComponent(btn.dataset.items));
+        const key = btn.dataset.id;
+        const total = parseFloat(btn.dataset.total);
+        const email = btn.dataset.email;
+        completePayment(key, total, email, items);
+      });
+    });
+  }
+
+  function viewInvoice(key, items) {
+    let html = `<p><strong>Invoice ID:</strong> ${key}</p>`;
+html += `
+    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+      <thead>
+        <tr>
+          <th>Item Name</th>
+          <th>Size</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+`;
+items.forEach(i => {
+  const total = i.price * i.quantity;
+  html += `
+        <tr>
+          <td>${i.name}</td>
+          <td>${i.size || "-"}</td>
+          <td>${i.price.toFixed(2)}</td>
+          <td>${i.quantity}</td>
+          <td>${total.toFixed(2)}</td>
+        </tr>
+  `;
+});
+html += `
+      </tbody>
+    </table>
+`;
+
+
+    document.getElementById("modalContent").innerHTML = html;
+    document.getElementById("viewModal").style.display = "flex";
+}
+
+
+
+  function closeModal() {
+    document.getElementById("viewModal").style.display = "none";
+  }
+
+  function completePayment(key, total, email, items) {
+    const amount = parseFloat(prompt("Enter the amount paid:"));
+    if (amount !== total) {
+      alert("Payment must match the total.");
+      return;
+    }
+
+    // Update status
+    userDb.ref("checkouts/" + key + "/status").set("complete");
+
+    // Deduct quantities
+    items.forEach(item => {
+      const itemRef = itemDb.ref("items/" + item.name + "/quantity");
+      itemRef.once("value", snap => {
+        const current = snap.val() || 0;
+        itemRef.set(Math.max(current - item.quantity, 0));
+      });
+    });
+
+    // Email notification
+    
+    emailjs.send("service_yekq70e", "template_svho078", {
+  invoiceId: key,
+  to_email: email,
+  message: `Hello, Your payment of K${total} has been received. Thank you!`
+}).then(() => alert("Invoice marked complete and email sent."));
+  }
+</script>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+
+    function toggleMenu() {
+      const isActive = sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+
+      // Change button text
+      menuBtn.innerHTML = isActive ? 'back' : '<i class="fa fa-bars"></i>';
+    }
+  </script>
+
+<script>
+  document.getElementById('searchInput').addEventListener('input', function () {
+    const query = this.value.trim().toLowerCase();
+    filterTableRows(query, 'awaitingTableBody');
+    filterTableRows(query, 'completedTableBody');
+  });
+
+  function filterTableRows(query, tableId) {
+    const rows = document.getElementById(tableId).getElementsByTagName('tr');
+    Array.from(rows).forEach(row => {
+      const invoiceId = row.cells[0].textContent.toLowerCase();
+      const userEmail = row.cells[1].textContent.toLowerCase();
+
+      if (invoiceId.includes(query) || userEmail.includes(query)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+</script>
+
+
+</body>
+</html>

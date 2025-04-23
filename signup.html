@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Email Login / Signup</title>
+  <script src="https://www.gstatic.com/firebasejs/8.2.3/firebase.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      text-align: center;
+    }
+    #auth-container {
+      width: 320px;
+      margin: 100px auto;
+      background: white;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h3 style="position: fixed; text-align: center; z-index: 1002; left: 30%; color: white; top: 0;">OpiumTrim.online</h3>
+
+<div style="width: 100%; height: 60px; background-color: black; isolation: isolate; position: fixed; z-index: 1000; top: 0; left: 0;"></div>
+
+  <div id="auth-container">
+    <h2>Email Login / Signup</h2>
+    
+    <form id="auth-form" autocomplete="on" onsubmit="return false;">
+      <input type="email" id="email" name="email" placeholder="Email" required>
+      <input type="password" id="password" name="password" placeholder="Password" required>
+      <button type="button" onclick="registerWithEmail()">Register</button>
+      <button type="button" onclick="loginWithEmail()">Login</button>
+      <button type="button" onclick="resetPassword()">Forgot Password?</button>
+    </form>
+  </div>
+
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
+      authDomain: "users-3eea8.firebaseapp.com",
+      databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
+      projectId: "users-3eea8",
+      storageBucket: "users-3eea8.appspot.com",
+      messagingSenderId: "64474198792",
+      appId: "1:64474198792:web:112b85b18a17a3f444f2bd",
+      measurementId: "G-589S6DX627"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    function registerWithEmail() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          return userCredential.user.sendEmailVerification();
+        })
+        .then(() => alert("Verification email sent! Please check your inbox."))
+        .catch(err => alert(err.message));
+    }
+
+    function loginWithEmail() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          const user = userCredential.user;
+          if (user.emailVerified) {
+            localStorage.setItem("username", user.email); // Store email
+            alert("Login successful!");
+            window.location.href = "index.html"; // Redirect to Code 2
+          } else {
+            firebase.auth().signOut();
+            alert("Please verify your email before logging in.");
+          }
+        })
+        .catch(err => alert(err.message));
+    }
+
+    function resetPassword() {
+      const email = document.getElementById('email').value;
+      if (!email) return alert("Enter your email first.");
+      firebase.auth().sendPasswordResetEmail(email)
+        .then(() => alert("Password reset email sent."))
+        .catch(err => alert(err.message));
+    }
+  </script>
+</body>
+</html>

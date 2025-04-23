@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+
+
+  <meta charset="UTF-8">
+  <title>Review Replies</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    .feedback-card {
+      position: relative;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      background: #f9f9f9;
+    }
+    .rating {
+      color: orange;
+    }
+    .reply-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: red;
+      color: white;
+      border-radius: 50%;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+    .avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      margin-right: 10px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 5px 10px;
+    }
+    #replyModal {
+      display: none;
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 20px;
+      border: 1px solid #ccc;
+      z-index: 1000;
+    }
+    #replyModal h3 {
+      margin-top: 0;
+    }
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .menu-btn {
+      position: fixed;
+      top: 10px;
+      left: 20px;
+      background: #111;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1001;
+      transition: background 0.3s;
+    }
+    .menu-btn:hover {
+      background: #333;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 260px;
+      height: 100%;
+      background: #1c1c1e;
+      color: #fff;
+      padding: 60px 20px;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+    .sidebar.active {
+      left: 0;
+    }
+    .sidebar h2 {
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+    .sidebar a {
+      display: block;
+      padding: 12px 0;
+      color: #ccc;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .sidebar a:hover {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<h3 style="position: fixed; text-align: center; z-index: 1002; left: 30%; top: 10px; color: white;">OpiumTrim.admins</h3>
+<div style="width: 100%; height: 60px; background-color: black; position: fixed; z-index: 1000; top: 0; left: 0;"></div>
+
+<button class="menu-btn" id="menuBtn" onclick="toggleMenu()"><i class="fa fa-bars"></i></button>
+
+<div class="sidebar" id="sidebar">
+  <h2>Menu</h2>
+  <a href="admin.html#adminPanel"><i class="fa fa-home"></i> Home</a>
+  <a href="logoUpload.html"><i class="fa fa-instagram"></i> Logos</a>
+  <a href="media.html"><i class="fa fa-upload"></i> Ads & media</a>
+  <a href="review-reply.html"><i class="fa fa-comments"></i> User feedback</a>
+  <a href="viewInvoices.html"><i class="fa fa-file-invoice"></i> Invoices</a>
+  <a href="index.html"><i class="fa fa-store"></i> View store</a>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeReplyModal(); toggleMenu();"></div>
+
+<h2 style="margin-top: 100px;">User Reviews</h2>
+<label for="filterSelect"><strong>Filter by Rating:</strong></label>
+<select id="filterSelect" onchange="applyFilter()" style="margin-bottom: 20px; padding: 5px;">
+  <option value="all">All Reviews</option>
+  <option value="good">Good (5 stars)</option>
+  <option value="average">Average (3-4 stars)</option>
+  <option value="worst">Worst (1-2 stars)</option>
+</select>
+
+<div id="reviewContainer"></div>
+
+<div id="replyModal">
+  <h3>Replies</h3>
+  <div id="replyText"></div>
+  <button onclick="closeReplyModal()">Close</button>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
+    authDomain: "users-3eea8.firebaseapp.com",
+    databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
+    projectId: "users-3eea8",
+    storageBucket: "users-3eea8.appspot.com",
+    messagingSenderId: "64474198792",
+    appId: "1:64474198792:web:112b85b18a17a3f444f2bd",
+    measurementId: "G-589S6DX627"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  let allReviews = [];
+
+
+
+  function fetchReviews() {
+    db.ref("feedback").once("value", snapshot => {
+      const data = snapshot.val();
+      if (!data) return;
+      allReviews = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+      renderReviews(allReviews);
+    });
+  }
+
+  function applyFilter() {
+    const filter = document.getElementById("filterSelect").value;
+    let filtered = [...allReviews];
+    if (filter === "good") {
+      filtered = allReviews.filter(r => r.rating === 5);
+    } else if (filter === "average") {
+      filtered = allReviews.filter(r => r.rating >= 3 && r.rating <= 4);
+    } else if (filter === "worst") {
+      filtered = allReviews.filter(r => r.rating <= 2);
+    }
+    renderReviews(filtered);
+  }
+
+  function getColorFromChar(char) {
+    const colors = ["#e74c3c", "#3498db", "#2ecc71", "#9b59b6", "#e67e22"];
+    return colors[char.charCodeAt(0) % colors.length];
+  }
+
+  function renderReviews(reviews) {
+    const container = document.getElementById('reviewContainer');
+    container.innerHTML = "";
+
+    reviews.forEach(review => {
+      const card = document.createElement("div");
+      card.className = "feedback-card";
+
+      const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+      const letter = review.username?.charAt(0).toUpperCase() || "?";
+      const avatarColor = getColorFromChar(letter);
+      const replyCount = review.replies ? Object.keys(review.replies).length : 0;
+
+      card.innerHTML = `
+        <div style="display: flex; align-items: center;">
+          <div class="avatar" style="background:${avatarColor}">${letter}</div>
+          <strong>${review.username}</strong>
+        </div>
+        <p class="rating">${stars}</p>
+        <p><strong>Review:</strong><br>${review.message || '<em>No comment</em>'}</p>
+        <button onclick='replyToReview(${JSON.stringify(review)})'>Reply</button>
+        <button onclick='viewReplies("${review.id}")'>View Replies</button>
+        ${replyCount > 0 ? `<div class="reply-badge">${replyCount}</div>` : ''}
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  
+
+// Initialize EmailJS
+emailjs.init('a46Lwy6avdXyTbAtF'); // Replace with your EmailJS public key
+
+function replyToReview(review) {
+  const replyMessage = prompt(`Reply to ${review.username}'s review:`);
+  if (!replyMessage) return;
+
+  const reply = {
+    message: replyMessage,
+    timestamp: Date.now()
+  };
+
+  // Save to Firebase
+  const replyRef = db.ref(`feedback/${review.id}/replies`).push();
+  replyRef.set(reply).then(() => {
+    alert("Reply saved!");
+
+    // Prepare EmailJS parameters
+    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+    const templateParams = {
+      to_email: review.username, // Assuming this is the user's email
+      to_name: review.username.split('@')[0], // Optional: use name before @
+      reply_message: replyMessage,
+      stars: stars,
+      review: review.message || 'No comment'
+    };
+
+    emailjs.send('service_fumeeim', 'template_2rwcnxo', templateParams)
+      .then(function(response) {
+        console.log('SUCCESS!', response.status, response.text);
+        alert('Email sent to user!');
+      }, function(error) {
+        console.error('FAILED...', error);
+        alert('Failed to send email: ' + error.text);
+      });
+
+    fetchReviews();
+  });
+}
+
+
+
+
+  function viewReplies(reviewId) {
+    const overlay = document.getElementById("overlay");
+    const modal = document.getElementById("replyModal");
+    const replyText = document.getElementById("replyText");
+
+    db.ref(`feedback/${reviewId}/replies`).once("value", snapshot => {
+      const replies = snapshot.val();
+      if (replies) {
+        let content = "";
+        Object.values(replies).forEach((r, i) => {
+          const date = new Date(r.timestamp).toLocaleString();
+          content += `<div class="reply-entry"><strong>Reply ${i + 1}</strong><br>${r.message}<br><small>${date}</small></div><hr>`;
+        });
+        replyText.innerHTML = content;
+      } else {
+        replyText.innerHTML = "<em>No replies yet.</em>";
+      }
+
+      overlay.classList.add("active");
+      modal.style.display = "block";
+    });
+  }
+
+  function closeReplyModal() {
+    document.getElementById("replyModal").style.display = "none";
+    document.getElementById("overlay").classList.remove("active");
+  }
+
+  function toggleMenu() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+    const isActive = sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+    menuBtn.innerHTML = isActive ? 'Back' : '<i class="fa fa-bars"></i>';
+  }
+
+  window.onload = fetchReviews;
+</script>
+
+</body>
+</html>

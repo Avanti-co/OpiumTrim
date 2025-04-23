@@ -1,0 +1,334 @@
+<!--created by : flyeours and kazk Ip -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=3.0, maximum-scale=1.0, user-scalable=no">
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ChatGPT</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<style>
+body, html {
+	height: 100%;
+	margin: 0;
+	font-family: "Poppins", sans-serif;
+	background-color: #292929;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 0;
+}
+
+.chat-container {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+	width: 100%;
+	max-width: 100%;
+	min-width: 100%;
+	height: 95%;
+	background-color: #fff;
+	border-radius: 2px;
+	box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+	padding: 20px;
+	margin: 0;
+}
+
+
+.chat-header {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 10px;
+}
+
+}
+
+.chat-header h1 {
+	font-size: 1.5em;
+	margin: 0;
+}
+
+
+.chat-box {
+	flex-grow: 1;
+	padding: 20px;
+	overflow-y: auto;
+	border-style: solid;
+	border-width: 5px;
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+	width: 100%;
+}
+
+
+.input-container {
+	display: flex;
+	padding: 10px;
+	background-color: #f1f1f1;
+	width: 100%;
+}
+
+.input-container input {
+	width: 100%;
+	padding: 25px;
+	font-size: 1em;
+	border: 1px solid #000;
+	border-radius: 1px;
+	border-width: 2px;
+	background-color: #fff;
+}
+
+.input-container button {
+	padding: 10px 15px;
+	background-color: #303030;
+	color: white;
+	border: none;
+	border-radius: 1px;
+	cursor: pointer;
+}
+
+.input-container button:hover {
+	background-color: #303030;
+}
+
+.user-msg, .ai-msg {
+	padding: 12px;
+	margin: 10px 0;
+	border-radius: 10px;
+	max-width: 75%;
+	word-wrap: break-word;
+	font-size: 1.1em;
+	line-height: 1.5;
+}
+
+.user-msg {
+	background-color: #7488aa;
+	color: white;
+	text-align: right;
+	margin-left: auto;
+}
+
+.ai-msg {
+	background-color: #5bbaa2;
+	color: white;
+	text-align: left;
+	margin-right: auto;
+}
+.menu-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: #111;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1001;
+      transition: background 0.3s;
+      font-size: 100%;
+    }
+
+    .menu-btn:hover {
+      background: #333;
+    }
+
+    /* Sidebar Menu */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 260px;
+      height: 100%;
+      background: #1c1c1e;
+      color: #fff;
+      padding: 60px 20px;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 12px 0;
+      color: #ccc;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .sidebar a:hover {
+      color: #fff;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+</style>
+
+  <button class="menu-btn" id="menuBtn" onclick="toggleMenu()"><i class="fa fa-bars"></i></button>
+
+  <div class="sidebar" id="sidebar">
+
+<button id="logoutBtn" onclick="logout()"><i class="fa fa-sign-out-alt"></i>Logout</button>
+    <h2>Menu</h2>
+
+    <a href="index.html"><i class="fa fa-home"></i>  Home</a>
+    <a href="profile.html"><i class=" fa fa-user"></i>  Profile</a>
+<a href="index.html#productContainer"><i class="fa fa-store"></i>  Store</a>
+    <a href="cart.html"><i class="fa fa-shopping-cart"></i>  Cart</a>
+<a href="checkout.html"><i class="fa fa-credit-card"></i>  Checkout</a>
+    <a href="index.html#AI"><i class="fa fa-question-circle"></i>  Help</a>
+    <a href="index.html#feed"><i class="fa fa-comments"></i>  Feedback</a>
+<a href="index.html#gallery-container"><i class="fa fa-images"></i>  Gallery</a>
+<a href="admin.html"><i class="fa fa-user-lock"></i>  Admins</a>
+
+
+  </div>
+
+  <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+	<div class="chat-container">
+		<div class="chatheader">
+				
+				
+			<h1>AVANTI AI</h1>
+		</div>
+		
+		<div class="chat-box" id="chatBox"></div>
+		
+		<div class="input-container">
+			<input type="text" id="userInput" placeholder="Type a message..." onkeypress="if(event.key === 'Enter'){sendMessage()}">
+			<button onclick="sendMessage()">Send</button>
+
+
+		</div>
+
+	</div>
+
+	<script src="script.js"></script>
+	<script>
+	// Define the function to handle sending the message
+function sendMessage() {
+	const userMessage = document.getElementById("userInput").value;
+	if (!userMessage) return; // Don't send empty messages
+
+	// Create a new chat message element for the user's message
+	const chatBox = document.getElementById("chatBox");
+	const userMessageElement = document.createElement("div");
+	userMessageElement.classList.add("user-msg");
+	userMessageElement.innerHTML = userMessage;
+	chatBox.appendChild(userMessageElement);
+
+	// Clear the input field after sending
+	document.getElementById("userInput").value = '';
+
+	// Fetch the AI response
+	fetchGroqData("You are now called Avanti AI, an AI module designed to help users navigate and get fond of OpiumTrim, you will only answer questions based or related to the training data provided below: OpiumTrim.online is a shopping website for the clothing brand OpiumTrim, it was designed by the Avanti corporation team. OpiumTrim has no physical location but is an online based store run by the Avanti management team. There are different sections of the website which are the user and admins side, any user can access the admins side through a login or register module while the admin’s web is only reserved for the management team although other users can be granted access to the website. " + 'On the user’s website, there are various sections, home, the cart, the OpiumTrim gallery and the OpiumTrim store that has a variety of items ranging from headwear to bottoms.OpiumTrim also offered deliveries on an estimate fee fixed based on the location of delivery. The delivery service can be requested by the user after checking out, you can either email the management team or call them to request for a delivery. OpiumTrim was established in 2025. pricing is in kwacha.and this is in lusaka, Zambia.Be creative when the user asks questions about the clothing brand that I have not outlined in this statement. there are no skirts of dresses or shoes… Do not answer any questions that are not based on this information, do not give broad and very long responses, just say it is not in my training data. Here is the question to answer: '+userMessage);
+}
+
+// Define the function to handle AI response
+async function fetchGroqData(prompt) {
+	const apiKey = "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"; // Your API key
+	const url = "https://api.groq.com/openai/v1/chat/completions"; // Groq API endpoint
+
+	const requestBody = {
+		model: "llama3-8b-8192", // Using the model from the API documentation
+		messages: [
+			{
+				role: "user", // The role of the message sender
+				content: prompt, // The user's input message
+			}
+		]
+	};
+
+	try {
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${apiKey}` // Authorization header with your API key
+			},
+			body: JSON.stringify(requestBody) // Sending the structured request body
+		});
+
+		if (!response.ok) {
+			throw new Error('Failed to fetch data from OpenAI API');
+		}
+
+		const data = await response.json();
+		const aiMessage = data.choices[0].message.content; // Assuming the API returns the message in this structure
+
+		// Create a new chat message element for the AI's response
+		const chatBox = document.getElementById("chatBox");
+		const aiMessageElement = document.createElement("div");
+		aiMessageElement.classList.add("ai-msg");
+		aiMessageElement.innerHTML = aiMessage;
+		chatBox.appendChild(aiMessageElement);
+
+		// Scroll to the bottom of the chat box
+		chatBox.scrollTop = chatBox.scrollHeight;
+
+	} catch (error) {
+		console.error("Error: ", error);
+	}
+}
+
+// Restart chat function
+function restartChat() {
+	// Clear all messages in the chat box
+	document.getElementById("chatBox").innerHTML = '';
+
+	// Optionally clear the input field
+	document.getElementById("userInput").value = '';
+}
+	</script>
+	
+	 <script>
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+
+    function toggleMenu() {
+      const isActive = sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+
+      // Change button text
+      menuBtn.innerHTML = isActive ? 'back' : '<i class="fa fa-bars"> </i>';
+    }
+  </script>
+</body>
+</html>

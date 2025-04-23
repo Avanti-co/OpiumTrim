@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Media Upload</title>
+  <style>
+    #uploadBox {
+      width: 200px;
+      height: 200px;
+      border: 2px dashed #888;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    #mediaPreview img, #mediaPreview video {
+  max-width: 200px;
+  max-height: 200px;
+  object-fit: contain;
+}
+
+
+    .btn {
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+   .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+
+    .mediaItem {
+  border: 1px solid #ccc;
+  padding: 10px;
+  position: relative;
+}
+
+
+    .mediaItem img, .mediaItem video {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+
+    .deleteBtn {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+
+ .menu-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #111;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1001;
+      transition: background 0.3s;
+    }
+
+    .menu-btn:hover {
+      background: #333;
+    }
+
+    /* Sidebar Menu */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 260px;
+      height: 100%;
+      background: #1c1c1e;
+      color: #fff;
+      padding: 60px 20px;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 12px 0;
+      color: #ccc;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .sidebar a:hover {
+      color: #fff;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      z-index: 999;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+  </style>
+</head>
+<body>
+
+<h3 style="position: fixed; text-align: center; z-index: 1002; left: 30%; color: white; top: 10px; ">OpiumTrim.admins</h3>
+
+<div style="width: 100%; height: 60px; background-color: black; isolation: isolate; position: fixed; z-index: 1000; top: 0; left:  0; "></div>
+
+ <button class="menu-btn" id="menuBtn" onclick="toggleMenu()"><i class="fa fa-bars"></i></button>
+
+  <div class="sidebar" id="sidebar">
+    <h2>Menu</h2>
+    <a href="admin.html#adminPanel"><i class="fa fa-home"></i>  Home</a>
+    <a href="logoUpload.html"><i class="fa fa-instagram"></i>  Logos</a>
+    <a href="media.html"><i class="fa fa-upload"></i>  Ads & media</a>
+    <a href="review-reply.html"><i class="fa fa-comments"></i>  User feedback</a>
+    <a href="viewInvoices.html"><i class="fa fa-file-invoice"></i>  Invoices</a>
+<a href="index.html"><i class="fa fa-store"></i>  View store</a>
+
+  </div>
+
+  <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+
+  <h2 style="margin-top: 100px;">Upload Media</h2>
+
+  <!-- Existing Upload Section (Replace this block) -->
+<div id="uploadBox">Upload Media</div>
+<input type="file" id="fileInput" accept="image/*,video/*" style="display:none">
+<div id="mediaPreview"></div>
+
+<select id="categorySelect">
+  <option value="gallery">Gallery</option>
+  <option value="advertisement">Advertisement</option>
+</select>
+
+<br>
+<textarea id="mediaComment" rows="3" cols="30" placeholder="Add a comment..."></textarea>
+
+<br>
+<button class="btn" onclick="submitMedia()">Submit</button>
+<p id="status"></p>
+
+
+  <h3>Gallery</h3>
+  <div id="galleryGrid" class="grid"></div>
+
+  <h3>Advertisement</h3>
+  <div id="advertisementGrid" class="grid"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
+      authDomain: "users-3eea8.firebaseapp.com",
+      databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
+      projectId: "users-3eea8",
+      storageBucket: "users-3eea8.appspot.com",
+      messagingSenderId: "64474198792",
+      appId: "1:64474198792:web:112b85b18a17a3f444f2bd",
+      measurementId: "G-589S6DX627"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const imagekitPrivateKey = "private_LWNMj6jq0yExzVkJTM9X0NV3Sk8="; // insecure
+    const imagekitPublicKey = "public_uWmyifZpCOsUcFPz5w0EJxoASuU=";
+    const imagekitUploadURL = "https://upload.imagekit.io/api/v1/files/upload";
+    const uploadBox = document.getElementById("uploadBox");
+    const fileInput = document.getElementById("fileInput");
+    const mediaPreview = document.getElementById("mediaPreview");
+    const status = document.getElementById("status");
+
+    let uploadedData = null;
+
+    uploadBox.onclick = () => fileInput.click();
+
+    fileInput.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("fileName", file.name);
+      formData.append("publicKey", imagekitPublicKey);
+      formData.append("useUniqueFileName", "true");
+
+      const auth = btoa(imagekitPrivateKey + ":");
+
+      status.textContent = "Uploading...";
+
+      try {
+        const res = await fetch(imagekitUploadURL, {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${auth}`
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+        uploadedData = data;
+
+        // Show preview
+        mediaPreview.innerHTML = file.type.startsWith("video/")
+          ? `<video src="${data.url}" controls></video>`
+          : `<img src="${data.url}" />`;
+
+        status.textContent = "Upload successful!";
+      } catch (err) {
+        status.textContent = "Upload failed.";
+        console.error(err);
+      }
+    };
+
+    window.submitMedia = async () => {
+  if (!uploadedData) return alert("No uploaded media.");
+
+  const category = document.getElementById("categorySelect").value;
+  const comment = document.getElementById("mediaComment").value.trim();
+  const mediaRef = ref(db, category);
+
+  status.textContent = "Submitting...";
+
+  await push(mediaRef, {
+    url: uploadedData.url,
+    fileId: uploadedData.fileId,
+    type: uploadedData.fileType,
+    comment: comment,
+    timestamp: new Date().toISOString()
+  });
+
+  uploadedData = null;
+  mediaPreview.innerHTML = "";
+  document.getElementById("mediaComment").value = "";
+  status.textContent = "Submitted!";
+};
+
+
+    function loadMedia(category, gridId) {
+      const grid = document.getElementById(gridId);
+      const refPath = ref(db, category);
+
+      onValue(refPath, (snapshot) => {
+        grid.innerHTML = "";
+        const data = snapshot.val();
+        if (!data) return;
+
+        Object.entries(data).forEach(([key, item]) => {
+          const container = document.createElement("div");
+          container.className = "mediaItem";
+          container.innerHTML = `
+  ${item.url.endsWith(".mp4") || item.url.includes("video") ?
+    `<video src="${item.url}" controls></video>` :
+    `<img src="${item.url}" />`
+  }
+  <p><strong>Comment:</strong> ${item.comment || "None"}</p>
+  <button class="deleteBtn" onclick="deleteMedia('${category}', '${key}', '${item.fileId}')">Delete</button>
+`;
+
+          grid.appendChild(container);
+        });
+      });
+    }
+
+    window.deleteMedia = async (category, key, fileId) => {
+      if (!confirm("Delete this media?")) return;
+
+      const auth = btoa(imagekitPrivateKey + ":");
+
+      // Delete from ImageKit
+      await fetch(`https://api.imagekit.io/v1/files/${fileId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Basic ${auth}`
+        }
+      });
+
+      // Delete from Firebase
+      const mediaRef = ref(db, `${category}/${key}`);
+      await remove(mediaRef);
+    };
+
+    loadMedia("gallery", "galleryGrid");
+    loadMedia("advertisement", "advertisementGrid");
+  </script>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+
+    function toggleMenu() {
+      const isActive = sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+
+      // Change button text
+      menuBtn.innerHTML = isActive ? 'back' : '<i class="fa fa-bars"></i>';
+    }
+  </script>
+</body>
+</html>
