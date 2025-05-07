@@ -62,7 +62,6 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: fadeIn 1s ease-in-out;
-	position: fixed;
 }
 
 .info-button,
@@ -406,7 +405,9 @@ code {
 
   </div>
 <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-<div class="header">
+
+  <div class="container">
+	<div class="header">
 	  <button class="info-button" onclick="showInfo()"><i class="fas fa-info-circle"></i></button>
 	  AVANTI AI
 	  <button style="color: black;"class="delete-button" onclick="confirmDeletion()">clear chat<i class="fas fa-trash-alt"></i>
@@ -415,8 +416,6 @@ code {
 
 	</div>
 
-  <div class="container">
-	
 
 	<div class="chat-area" id="messages">
 	  <div class="help" id="helpText"></div>
