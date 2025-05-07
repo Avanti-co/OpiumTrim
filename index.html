@@ -1495,11 +1495,11 @@ card.onclick = () => {
       `;
     } else if (mediaData.type === "video") {
       container.innerHTML = `
-        <img 
+        <video
           src="${mediaData.url}" 
           
           style="width: 100%; height: 100%; object-fit: cover;"
-        ></img>
+        ></video>
       `;
     } else {
       container.innerText = "Unsupported media type";
