@@ -3,101 +3,226 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Email Login / Signup</title>
+  <title>Login / Signup</title>
   <script src="https://www.gstatic.com/firebasejs/8.2.3/firebase.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      text-align: center;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1c1c2b, #3a3a52);
+      color: #fff;
     }
-    #auth-container {
-      width: 320px;
-      margin: 100px auto;
-      background: white;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input, button {
+
+    .header-bar {
+      background: #000;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      top: 0;
       width: 100%;
-      margin: 10px 0;
-      padding: 10px;
+      z-index: 1000;
     }
-    button {
-      background-color: #007BFF;
+
+    .header-bar h3 {
+      margin: 0;
       color: white;
-      border: none;
+      font-size: 20px;
+    }
+
+    .container {
+      width: 380px;
+      margin: 100px auto 40px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 30px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #555;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
       cursor: pointer;
+      transition: all 0.3s;
+      font-weight: bold;
+      color: #bbb;
+    }
+
+    .tab.active {
+      color: #fff;
+      border-bottom: 2px solid #6a11cb;
+    }
+
+    .form-section {
+      display: none;
+    }
+
+    .form-section.active {
+      display: block;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    input::placeholder {
+      color: #ccc;
+    }
+
+    .button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .button:hover {
+      transform: scale(1.03);
+    }
+
+    .guest-link {
+      display: block;
+      margin-top: 15px;
+      text-align: center;
+      color: #ccc;
+      font-size: 14px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .guest-link:hover {
+      color: white;
     }
   </style>
 </head>
 <body>
 
-<h3 style="position: fixed; text-align: center; z-index: 1002; left: 30%; color: white; top: 0;">OpiumTrim.online</h3>
+<div class="header-bar">
+  <h3>OpiumTrim.online</h3>
+</div>
 
-<div style="width: 100%; height: 60px; background-color: black; isolation: isolate; position: fixed; z-index: 1000; top: 0; left: 0;"></div>
-
-  <div id="auth-container">
-    <h2>Email Login / Signup</h2>
-    
-    <form id="auth-form" autocomplete="on" onsubmit="return false;">
-      <input type="email" id="email" name="email" placeholder="Email" required>
-      <input type="password" id="password" name="password" placeholder="Password" required>
-      <button type="button" onclick="registerWithEmail()">Register</button>
-      <button type="button" onclick="loginWithEmail()">Login</button>
-      <button type="button" onclick="resetPassword()">Forgot Password?</button>
-    </form>
+<div class="container">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('login')">Login</div>
+    <div class="tab" onclick="switchTab('signup')">Sign Up</div>
   </div>
 
-  <script>
-    var firebaseConfig = {
-      apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
-      authDomain: "users-3eea8.firebaseapp.com",
-      databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
-      projectId: "users-3eea8",
-      storageBucket: "users-3eea8.appspot.com",
-      messagingSenderId: "64474198792",
-      appId: "1:64474198792:web:112b85b18a17a3f444f2bd",
-      measurementId: "G-589S6DX627"
-    };
-    firebase.initializeApp(firebaseConfig);
+  <!-- Login Form -->
+  <div id="login" class="form-section active">
+    <input type="email" id="login-email" placeholder="Email" required>
+    <input type="password" id="login-password" placeholder="Password" required>
+    <button class="button" onclick="loginWithEmail()">Login</button>
+    <button class="button" onclick="resetPassword()">Forgot Password?</button>
+  </div>
 
-    function registerWithEmail() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      firebase.auth().createUserWithEmailAndPassword(email, password)
-        .then(userCredential => {
-          return userCredential.user.sendEmailVerification();
-        })
-        .then(() => alert("Verification email sent! Please check your inbox."))
-        .catch(err => alert(err.message));
-    }
+  <!-- Signup Form -->
+  <div id="signup" class="form-section">
+    <input type="email" id="signup-email" placeholder="Email" required>
+    <input type="password" id="signup-password" placeholder="Password" required>
+    <button class="button" onclick="registerWithEmail()">Sign Up</button>
+  </div>
 
-    function loginWithEmail() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      firebase.auth().signInWithEmailAndPassword(email, password)
-        .then(userCredential => {
-          const user = userCredential.user;
-          if (user.emailVerified) {
-            localStorage.setItem("username", user.email); // Store email
-            alert("Login successful!");
-            window.location.href = "index.html"; // Redirect to Code 2
-          } else {
-            firebase.auth().signOut();
-            alert("Please verify your email before logging in.");
-          }
-        })
-        .catch(err => alert(err.message));
-    }
+  <div class="guest-link" onclick="continueAsGuest()">Continue as Guest</div>
+</div>
 
-    function resetPassword() {
-      const email = document.getElementById('email').value;
-      if (!email) return alert("Enter your email first.");
-      firebase.auth().sendPasswordResetEmail(email)
-        .then(() => alert("Password reset email sent."))
-        .catch(err => alert(err.message));
+<script>
+  // Firebase config
+  var firebaseConfig = {
+    apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
+    authDomain: "users-3eea8.firebaseapp.com",
+    databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
+    projectId: "users-3eea8",
+    storageBucket: "users-3eea8.appspot.com",
+    messagingSenderId: "64474198792",
+    appId: "1:64474198792:web:112b85b18a17a3f444f2bd",
+    measurementId: "G-589S6DX627"
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  // Switch tabs
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.form-section').forEach(f => f.classList.remove('active'));
+
+    document.querySelector(`.tab[onclick*="${tab}"]`).classList.add('active');
+    document.getElementById(tab).classList.add('active');
+  }
+
+  function registerWithEmail() {
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then(userCredential => userCredential.user.sendEmailVerification())
+      .then(() => alert("Verification email sent! Please check your inbox."))
+      .catch(err => alert(err.message));
+  }
+
+  function loginWithEmail() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        const user = userCredential.user;
+        if (user.emailVerified) {
+          localStorage.setItem("username", user.email);
+          alert("Login successful!");
+          window.location.href = "index.html";
+        } else {
+          firebase.auth().signOut();
+          alert("Please verify your email before logging in.");
+        }
+      })
+      .catch(err => alert(err.message));
+  }
+
+  function resetPassword() {
+    const email = document.getElementById('login-email').value;
+    if (!email) return alert("Enter your email first.");
+    firebase.auth().sendPasswordResetEmail(email)
+      .then(() => alert("Password reset email sent."))
+      .catch(err => alert(err.message));
+  }
+
+  function continueAsGuest() {
+    localStorage.setItem("username", "Guest");
+    alert("Continuing as Guest...");
+    window.location.href = "index.html";
+  }
+</script>
+
+<script>
+function logout() {
+      localStorage.removeItem('username');
+      alert("Logged out successfully.");
+      window.location.href = 'signup.html';
     }
-  </script>
+</script>
+
 </body>
 </html>
