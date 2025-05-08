@@ -203,187 +203,201 @@ color: black;
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
-      authDomain: "users-3eea8.firebaseapp.com",
-      databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
-      projectId: "users-3eea8",
-      storageBucket: "users-3eea8.appspot.com",
-      messagingSenderId: "64474198792",
-      appId: "1:64474198792:web:112b85b18a17a3f444f2bd",
-      measurementId: "G-589S6DX627"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBWLLHSGAN8tbieXu8PJL74NbLJLrxGCM8",
+    authDomain: "users-3eea8.firebaseapp.com",
+    databaseURL: "https://users-3eea8-default-rtdb.firebaseio.com",
+    projectId: "users-3eea8",
+    storageBucket: "users-3eea8.appspot.com",
+    messagingSenderId: "64474198792",
+    appId: "1:64474198792:web:112b85b18a17a3f444f2bd",
+    measurementId: "G-589S6DX627"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-    const stars = document.querySelectorAll('.stars span');
-    let selectedRating = 0;
+  const stars = document.querySelectorAll('.stars span');
+  let selectedRating = 0;
 
-    stars.forEach(star => {
-      star.addEventListener('click', () => {
-        selectedRating = parseInt(star.getAttribute('data-star'));
-        updateStarColors(selectedRating);
-      });
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      selectedRating = parseInt(star.getAttribute('data-star'));
+      updateStarColors(selectedRating);
     });
+  });
 
-    function updateStarColors(rating) {
-      stars.forEach(star => {
-        const starVal = parseInt(star.getAttribute('data-star'));
-        star.classList.toggle('selected', starVal <= rating);
-      });
+  function updateStarColors(rating) {
+    stars.forEach(star => {
+      const starVal = parseInt(star.getAttribute('data-star'));
+      star.classList.toggle('selected', starVal <= rating);
+    });
+  }
+
+  function submitFeedback() {
+    const feedback = document.getElementById('feedbackText').value.trim();
+    const rawUsername = localStorage.getItem('username') || 'Anonymous';
+    const isGuest = rawUsername.toLowerCase() === 'guest';
+    const username = isGuest ? 'Anonymous' : rawUsername;
+
+    if (selectedRating === 0) {
+      alert("Please give a star rating.");
+      return;
     }
 
-    function submitFeedback() {
-      const feedback = document.getElementById('feedbackText').value.trim();
-      const username = localStorage.getItem('username') || 'Anonymous';
+    db.ref('feedback').orderByChild('username').equalTo(username).once('value').then(snapshot => {
+      const userReviews = snapshot.val();
+      const reviewsArray = userReviews ? Object.entries(userReviews) : [];
 
-      if (selectedRating === 0) {
-        alert("Please give a star rating.");
-        return;
-      }
-
-      // Fetch all the feedback for the current user
-      db.ref('feedback').orderByChild('username').equalTo(username).once('value').then(snapshot => {
-        const userReviews = snapshot.val();
-        const reviewsArray = userReviews ? Object.entries(userReviews) : [];
-
-        // If the user has 15 reviews, delete the oldest
-        if (reviewsArray.length >= 15) {
-          const oldestReviewKey = reviewsArray[0][0]; // Get the key of the oldest review
-          db.ref('feedback/' + oldestReviewKey).remove() // Remove the oldest review
-            .then(() => {
-              console.log('Oldest review deleted');
-              submitNewReview(feedback, username);
-            })
-            .catch(error => {
-              console.error('Error deleting oldest review:', error);
-            });
-        } else {
-          submitNewReview(feedback, username);
-        }
-      });
-    }
-
-    function submitNewReview(feedback, username) {
-      const feedbackData = {
-        username: username,
-        rating: selectedRating,
-        message: feedback,
-        timestamp: new Date().toISOString()
-      };
-
-      // Submit the new feedback
-      db.ref('feedback').push(feedbackData)
-        .then(() => {
-          document.getElementById('feedbackText').value = '';
-          updateStarColors(0);
-          selectedRating = 0;
-          showThankYou();
-          setTimeout(() => location.reload(), 1000);
-        })
-        .catch(error => {
-          alert("Error saving feedback: " + error.message);
-        });
-    }
-
-    function deleteFeedback(key) {
-      if (confirm('Are you sure you want to delete this feedback?')) {
-        db.ref('feedback/' + key).remove()
+      if (reviewsArray.length >= 15) {
+        const oldestReviewKey = reviewsArray[0][0];
+        db.ref('feedback/' + oldestReviewKey).remove()
           .then(() => {
-            alert('Feedback deleted successfully.');
-            location.reload();
+            submitNewReview(feedback, username, isGuest);
           })
           .catch(error => {
-            alert('Error deleting feedback: ' + error.message);
+            console.error('Error deleting oldest review:', error);
           });
+      } else {
+        submitNewReview(feedback, username, isGuest);
       }
+    });
+  }
+
+  function submitNewReview(feedback, username, isGuest) {
+    const feedbackData = {
+      username: username,
+      rating: selectedRating,
+      message: feedback,
+      timestamp: new Date().toISOString()
+    };
+
+    db.ref('feedback').push(feedbackData)
+      .then(() => {
+        document.getElementById('feedbackText').value = '';
+        updateStarColors(0);
+        selectedRating = 0;
+        if (isGuest) {
+          alert("Review sent. Sign up to receive a reply from the management.");
+        }
+        showThankYou();
+        setTimeout(() => location.reload(), 1000);
+      })
+      .catch(error => {
+        alert("Error saving feedback: " + error.message);
+      });
+  }
+
+  function deleteFeedback(key) {
+    if (confirm('Are you sure you want to delete this feedback?')) {
+      db.ref('feedback/' + key).remove()
+        .then(() => {
+          alert('Feedback deleted successfully.');
+          location.reload();
+        })
+        .catch(error => {
+          alert('Error deleting feedback: ' + error.message);
+        });
+    }
+  }
+
+  function showAllFeedback() {
+    document.getElementById('popup').style.display = 'block';
+  }
+
+  function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+  }
+
+  function showThankYou() {
+    const message = document.getElementById("thankYouMessage");
+    message.style.display = "block";
+    launchConfetti();
+  }
+
+  function launchConfetti() {
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+    function randomInRange(min, max) {
+      return Math.random() * (max - min) + min;
     }
 
-    function showAllFeedback() {
-      document.getElementById('popup').style.display = 'block';
-    }
+    const interval = setInterval(function () {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) return clearInterval(interval);
 
-    function closePopup() {
-      document.getElementById('popup').style.display = 'none';
-    }
+      const particleCount = 50 * (timeLeft / duration);
+      confetti(Object.assign({}, defaults, {
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 }
+      }));
+    }, 250);
+  }
 
-    function showThankYou() {
-      const message = document.getElementById("thankYouMessage");
-      message.style.display = "block";
-      launchConfetti();
-    }
+  window.onload = () => {
+    const container = document.getElementById('feedbackCardContainer');
+    const allList = document.getElementById('allFeedbackList');
+    const currentUser = localStorage.getItem('username') || 'Anonymous';
+    const isGuest = currentUser.toLowerCase() === 'guest';
 
-    function launchConfetti() {
-      const duration = 3 * 1000;
-      const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+    if (isGuest) return; // Skip showing feedback for guest users
 
-      function randomInRange(min, max) {
-        return Math.random() * (max - min) + min;
-      }
+    db.ref('feedback').once('value').then(snapshot => {
+      const feedbacks = snapshot.val();
+      if (!feedbacks) return;
 
-      const interval = setInterval(function () {
-        const timeLeft = animationEnd - Date.now();
-        if (timeLeft <= 0) return clearInterval(interval);
-
-        const particleCount = 50 * (timeLeft / duration);
-        confetti(Object.assign({}, defaults, {
-          particleCount,
-          origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 }
-        }));
-      }, 250);
-    }
-
-    window.onload = () => {
-      const container = document.getElementById('feedbackCardContainer');
-      const allList = document.getElementById('allFeedbackList');
-      const currentUser = localStorage.getItem('username') || 'Anonymous';
       let userFeedbacks = [];
 
-      db.ref('feedback').once('value').then(snapshot => {
-        const feedbacks = snapshot.val();
-        if (!feedbacks) return;
-
-        Object.entries(feedbacks).forEach(([key, data]) => {
-          if (data.username === currentUser) {
-            userFeedbacks.push({ ...data, key });
-          }
-        });
-
-        if (userFeedbacks.length > 0) {
-          const latest = userFeedbacks[userFeedbacks.length - 1];
-          container.innerHTML = `
-            <div class="feedback-card">
-              <strong style="color: #C1E5F7">${latest.username}</strong><br>
-<p style="color: orange; margin: 0;">
-              ${'★'.repeat(latest.rating)}${'☆'.repeat(5 - latest.rating)}</p><br>
-              ${latest.message ? latest.message : '<em>No comment</em>'}<br>
-              <button style=" color: #FF5757; background: none; " onclick="deleteFeedback('${latest.key}')">Delete</button>
-            </div>
-          `;
+      Object.entries(feedbacks).forEach(([key, data]) => {
+        if (data.username === currentUser) {
+          userFeedbacks.push({ ...data, key });
         }
-
-        if (userFeedbacks.length > 1) {
-          document.getElementById('seeAllBtn').style.display = 'inline-block';
-        }
-
-        allList.innerHTML = '';
-        userFeedbacks.forEach(item => {
-          const div = document.createElement('div');
-          div.style.borderBottom = '1px solid #ccc';
-          div.style.marginBottom = '10px';
-
-          div.innerHTML = `
-            <strong>${item.username}</strong><br>
-            ${'★'.repeat(item.rating)}${'☆'.repeat(5 - item.rating)}<br>
-            ${item.message ? item.message : '<em>No comment</em>'}<br>
-            <button onclick="deleteFeedback('${item.key}')">Delete</button><br><br>
-          `;
-          allList.appendChild(div);
-        });
       });
-    };
-  </script>
+
+      if (userFeedbacks.length > 0) {
+        const latest = userFeedbacks[userFeedbacks.length - 1];
+        container.innerHTML = `
+          <div class="feedback-card">
+            <strong style="color: #C1E5F7">${latest.username}</strong><br>
+            <p style="color: orange; margin: 0;">
+              ${'★'.repeat(latest.rating)}${'☆'.repeat(5 - latest.rating)}</p><br>
+            ${latest.message ? latest.message : '<em>No comment</em>'}<br>
+            <button style=" color: #FF5757; background: none; " onclick="deleteFeedback('${latest.key}')">Delete</button>
+          </div>
+        `;
+      }
+
+      if (userFeedbacks.length > 1) {
+        document.getElementById('seeAllBtn').style.display = 'inline-block';
+      }
+
+      allList.innerHTML = '';
+      userFeedbacks.forEach(item => {
+        const div = document.createElement('div');
+        div.style.borderBottom = '1px solid #ccc';
+        div.style.marginBottom = '10px';
+
+        div.innerHTML = `
+          <strong>${item.username}</strong><br>
+          ${'★'.repeat(item.rating)}${'☆'.repeat(5 - item.rating)}<br>
+          ${item.message ? item.message : '<em>No comment</em>'}<br>
+          <button onclick="deleteFeedback('${item.key}')">Delete</button><br><br>
+        `;
+        allList.appendChild(div);
+      });
+    });
+  };
+</script>
+
+<script>
+function logout() {
+      localStorage.removeItem('username');
+      alert("Logged out successfully.");
+      window.location.href = 'signup.html';
+    }
+</script>
+
 </body>
 </html>
