@@ -1657,7 +1657,10 @@ card.onclick = () => {
     avatarEl.style.display = 'flex';
     avatarEl.style.alignItems = 'center';
     avatarEl.style.justifyContent = 'center';
-    avatarEl.style.fontSize = '1.2em'; // Adjust size as needed
+    avatarEl.style.fontSize = '1.2em';
+    avatarEl.addEventListener('click', () => {
+    window.location.href = 'profile.html';
+      });// Adjust size as needed
   } else {
     setAvatar(storedUsername);
   }
