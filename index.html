@@ -834,6 +834,13 @@ body.desktop-view .gallery img:hover {
 
 </head>
 <body>
+	<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!localStorage.getItem('username')) {
+      localStorage.setItem('username', 'Guest');
+    }
+  });
+</script>
   <script>
     // Redirect if not logged in
     const userEmail = localStorage.getItem('username');
@@ -1004,13 +1011,7 @@ Store</h1>
 </div>
 
 
-<script>
-  window.addEventListener('DOMContentLoaded', () => {
-    if (!localStorage.getItem('username')) {
-      localStorage.setItem('username', 'Guest');
-    }
-  });
-</script>
+
 
 
   <script>
