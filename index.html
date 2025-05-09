@@ -743,8 +743,83 @@ background: linear-gradient(to bottom, #141e30, #243b55);
   box-shadow: 0 6px 20px rgba(0, 188, 212, 0.7);
 }
 
+	  /* Desktop-only professional layout */
+body.desktop-view {
+  font-size: 16px;
+  background: #f8f9fa;
+  padding: 20px;
+}
+
+body.desktop-view .container {
+  grid-template-columns: repeat(5, 1fr);
+  padding: 20px;
+  gap: 20px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+body.desktop-view .card {
+  width: 180px;
+  min-height: 240px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+body.desktop-view .card img {
+  height: 140px;
+}
+
+body.desktop-view .card h3,
+body.desktop-view .card p {
+  font-size: 12px;
+  padding: 2px 0;
+}
+
+body.desktop-view #logo1 {
+  min-height: 300px;
+}
+
+body.desktop-view #logo2 {
+  height: 250px;
+  width: 250px;
+  bottom: -125px;
+  left: 30%;
+}
+
+body.desktop-view .gallery-container,
+body.desktop-view .ad-container {
+  height: 400px;
+}
+
+body.desktop-view .gallery-slide,
+body.desktop-view .ad-slide img {
+  height: 100%;
+}
+
+body.desktop-view .assistance-box {
+  padding: 60px;
+  font-size: 1.2em;
+}
+
+body.desktop-view .sidebar {
+  width: 300px;
+}
+
+body.desktop-view .menu-btn {
+  font-size: 18px;
+  padding: 12px 20px;
+}
+
 
   </style>
+
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+  body.desktop-view {
+    font-family: 'Poppins', sans-serif;
+  }
+</style>
+
 </head>
 <body>
   <script>
@@ -1591,6 +1666,15 @@ card.onclick = () => {
 </script>
 
 
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const isDesktop = window.innerWidth >= 1024;
+
+    if (isDesktop) {
+      document.body.classList.add("desktop-view");
+    }
+  });
+</script>
 
 
 
