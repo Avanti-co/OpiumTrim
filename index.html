@@ -1004,6 +1004,13 @@ Store</h1>
 </div>
 
 
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!localStorage.getItem('username')) {
+      localStorage.setItem('username', 'Guest');
+    }
+  });
+</script>
 
 
   <script>
