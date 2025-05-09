@@ -1652,11 +1652,19 @@ card.onclick = () => {
     };
 
     if (storedUsername) {
-      setAvatar(storedUsername);
-    } else {
-      avatarEl.textContent = '?';
-      avatarEl.style.backgroundColor = '#888';
-    }
+  if (storedUsername === "Guest") {
+    avatarEl.innerHTML = '<i class="fa fa-user"></i>';
+    avatarEl.style.display = 'flex';
+    avatarEl.style.alignItems = 'center';
+    avatarEl.style.justifyContent = 'center';
+    avatarEl.style.fontSize = '1.2em'; // Adjust size as needed
+  } else {
+    setAvatar(storedUsername);
+  }
+} else {
+  avatarEl.textContent = '?';
+}
+
   });
 </script>
 
