@@ -846,8 +846,9 @@ body.desktop-view .gallery img:hover {
     const userEmail = localStorage.getItem('username');
     if (!userEmail) {
       localStorage.setItem('username', 'Guest');
+      location.reload();
     }
-    }
+    
   </script>
 
 <!-- HTML -->
