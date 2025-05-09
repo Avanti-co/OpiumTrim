@@ -845,7 +845,8 @@ body.desktop-view .gallery img:hover {
     // Redirect if not logged in
     const userEmail = localStorage.getItem('username');
     if (!userEmail) {
-      window.location.href = 'signup.html';
+      localStorage.setItem('username', 'Guest');
+    }
     }
   </script>
 
