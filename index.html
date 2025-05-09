@@ -744,70 +744,67 @@ background: linear-gradient(to bottom, #141e30, #243b55);
 }
 
 	  /* Desktop-only professional layout */
+/* Retain dark theme and professionalize layout on desktops */
 body.desktop-view {
-  font-size: 16px;
-  background: #f8f9fa;
-  padding: 20px;
+  background-color: #111;
+  color: #eee;
+  font-family: 'Poppins', sans-serif;
 }
 
 body.desktop-view .container {
-  grid-template-columns: repeat(5, 1fr);
-  padding: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 20px;
-  max-width: 1200px;
-  margin: auto;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 body.desktop-view .card {
-  width: 180px;
-  min-height: 240px;
-  padding: 10px;
-  font-size: 14px;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+body.desktop-view .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
 }
 
 body.desktop-view .card img {
   height: 140px;
+  object-fit: cover;
+  border-radius: 6px;
 }
 
-body.desktop-view .card h3,
-body.desktop-view .card p {
-  font-size: 12px;
-  padding: 2px 0;
+/* Gallery styles */
+body.desktop-view .gallery-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 40px auto;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.08);
 }
 
-body.desktop-view #logo1 {
-  min-height: 300px;
+body.desktop-view .gallery {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px;
 }
 
-body.desktop-view #logo2 {
-  height: 250px;
-  width: 250px;
-  bottom: -125px;
-  left: 30%;
+body.desktop-view .gallery img {
+  height: 300px;
+  width: auto;
+  scroll-snap-align: center;
+  border-radius: 10px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-body.desktop-view .gallery-container,
-body.desktop-view .ad-container {
-  height: 400px;
-}
-
-body.desktop-view .gallery-slide,
-body.desktop-view .ad-slide img {
-  height: 100%;
-}
-
-body.desktop-view .assistance-box {
-  padding: 60px;
-  font-size: 1.2em;
-}
-
-body.desktop-view .sidebar {
-  width: 300px;
-}
-
-body.desktop-view .menu-btn {
-  font-size: 18px;
-  padding: 12px 20px;
+body.desktop-view .gallery img:hover {
+  transform: scale(1.05);
 }
 
 
