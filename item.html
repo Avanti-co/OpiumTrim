@@ -301,48 +301,56 @@ display: none;
   }
 
   function addToCart(product, id) {
-    const quantity = parseInt(document.getElementById('quantity').value);
-    const size = document.getElementById('size').value;
+  const quantity = parseInt(document.getElementById('quantity').value);
+  const size = document.getElementById('size').value;
 
-    if (quantity > product.quantity) {
-      alert(`Only ${product.quantity} available.`);
-      return;
-    }
-
-    if (userEmail === "Guest") {
-      document.getElementById("signupModal").style.display = "flex";
-      return;
-    }
-
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const existing = cart.find(item => item.id === id && item.size === size);
-    const newTotal = existing ? existing.quantity + quantity : quantity;
-
-    if (newTotal > product.quantity) {
-      alert(`Only ${product.quantity} available. You already have ${existing?.quantity || 0} in cart.`);
-      return;
-    }
-
-    if (existing) {
-      existing.quantity += quantity;
-    } else {
-      cart.push({ id, ...product, size, quantity });
-    }
-
-    localStorage.setItem('cart', JSON.stringify(cart));
-    alert(`${product.name} added to cart!`);
-
-    if (userEmail) {
-      const safeEmail = userEmail.replace(/\./g, '_');
-      userDb.ref(`carts/${safeEmail}`).push({
-        id,
-        ...product,
-        size,
-        quantity,
-        addedAt: new Date().toISOString()
-      });
-    }
+  if (quantity > product.quantity) {
+    alert(`Only ${product.quantity} available.`);
+    return;
   }
+
+  if (userEmail === "Guest") {
+    document.getElementById("signupModal").style.display = "flex";
+    return;
+  }
+
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  const existing = cart.find(item => item.id === id && item.size === size);
+  const newTotal = existing ? existing.quantity + quantity : quantity;
+
+  if (newTotal > product.quantity) {
+    alert(`Only ${product.quantity} available. You already have ${existing?.quantity || 0} in cart.`);
+    return;
+  }
+
+  if (existing) {
+    existing.quantity += quantity;
+  } else {
+    cart.push({ 
+      id, 
+      ...product, 
+      size, 
+      quantity,
+      category: product.category  // <-- add category here
+    });
+  }
+
+  localStorage.setItem('cart', JSON.stringify(cart));
+  alert(`${product.name} added to cart!`);
+
+  if (userEmail) {
+    const safeEmail = userEmail.replace(/\./g, '_');
+    userDb.ref(`carts/${safeEmail}`).push({
+      id,
+      ...product,
+      size,
+      quantity,
+      category: product.category,  // <-- add category here
+      addedAt: new Date().toISOString()
+    });
+  }
+}
+
 
   function toggleMenu() {
     document.getElementById("sidebar").classList.toggle("active");
