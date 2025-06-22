@@ -391,7 +391,13 @@ background: linear-gradient(to bottom, #141e30, #243b55);
         const itemQuantity = parseInt(item.quantity);
         const itemTotal = itemPrice * itemQuantity;
 
-        cartItems.push({ ...item, price: itemPrice, quantity: itemQuantity });
+        cartItems.push({
+  ...item,
+  price: itemPrice,
+  quantity: itemQuantity,
+  category: item.category || "other" // <-- ensures category is retained or defaults
+});
+
 
         const row = `
           <tr>
